@@ -1,15 +1,19 @@
 import ContactSection  from "@/components/ContactSection";
 import GridBackground   from "@/components/GridBackground";
 import GunHeroClient    from "@/components/GunHeroClient";
+import HeroSection      from "@/components/HeroSection";
 
 export default function Home() {
   return (
-    <main className="relative overflow-x-hidden">
+    <main className="relative" style={{ overflowX: "clip" }}>
 
       {/* ── Interactive canvas grid (behind everything) ── */}
       <GridBackground />
 
-      {/* ── Gun hero — full-page 3D with scroll animation ── */}
+      {/* ── Screen 1: Hero with pixel trail ── */}
+      <HeroSection />
+
+      {/* ── Screen 2: Gun — 300 vh container (100 vh settle + 100 vh animate) ── */}
       <GunHeroClient />
 
       {/* ── Warm gradient orbs ── */}

@@ -6,28 +6,27 @@ import { useEffect, useRef, useCallback } from "react";
 const GRID    = 64;   // px between grid lines
 const RADIUS  = 500;  // magnetic influence radius in px
 const PULL    = 16;   // max displacement in px
-const SPRING  = 0.09; // stiffness (lower = lazier)
-const DAMP    = 0.65; // damping  (lower = more oscillation / wobble)
+const SPRING  = 0.09; // stiffness
+const DAMP    = 0.65; // damping
 
 // Accent colour components (warm terracotta #C07548)
 const ACCENT = { r: 192, g: 117, b: 72 };
 // Resting line colour (warm cream)
 const REST   = { r: 242, g: 220, b: 190 };
-// ─────────────────────────────────────────────────────────────────
 
 interface Pt {
-  ox: number; oy: number; // origin
-  x:  number; y:  number; // current
-  vx: number; vy: number; // velocity
+  ox: number; oy: number;
+  x:  number; y:  number;
+  vx: number; vy: number;
 }
 
 export default function GridBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const gridRef   = useRef<Pt[][]>([]);          // [col][row]
-  const mouseRef  = useRef({ x: -9999, y: -9999 });
-  const rafRef    = useRef<number>(0);
+  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const gridRef    = useRef<Pt[][]>([]);
+  const mouseRef   = useRef({ x: -9999, y: -9999 });
+  const scrollRef  = useRef(0);               // tracks window.scrollY
+  const rafRef     = useRef<number>(0);
 
-  // ── Build the point grid to fill the canvas ────────────────────
   const buildGrid = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -52,7 +51,6 @@ export default function GridBackground() {
     gridRef.current = g;
   }, []);
 
-  // ── Main animation loop ────────────────────────────────────────
   const tick = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -63,9 +61,12 @@ export default function GridBackground() {
     const { x: mx, y: my } = mouseRef.current;
     const grid = gridRef.current;
 
+    // Disable magnetism while the hero section is in view
+    const onHero = scrollRef.current < window.innerHeight;
+
     ctx.clearRect(0, 0, W, H);
 
-    // ── 1. Physics update ────────────────────────────────────────
+    // ── 1. Physics update ─────────────────────────────────────────
     for (const col of grid) {
       for (const p of col) {
         const dx = mx - p.ox;
@@ -74,14 +75,13 @@ export default function GridBackground() {
 
         let tx = p.ox, ty = p.oy;
 
-        if (dist < RADIUS && dist > 0) {
-          // Quadratic falloff — strong near cursor, gentle at edge
+        // Only apply magnetic pull when NOT on the hero screen
+        if (!onHero && dist < RADIUS && dist > 0) {
           const strength = Math.pow(1 - dist / RADIUS, 2);
           tx = p.ox + (dx / dist) * strength * PULL;
           ty = p.oy + (dy / dist) * strength * PULL;
         }
 
-        // Hooke's law spring toward target
         p.vx = (p.vx + (tx - p.x) * SPRING) * DAMP;
         p.vy = (p.vy + (ty - p.y) * SPRING) * DAMP;
         p.x += p.vx;
@@ -89,11 +89,9 @@ export default function GridBackground() {
       }
     }
 
-    // ── Helper: displacement ratio 0→1 ──────────────────────────
     const ratio = (p: Pt) =>
       Math.min(Math.sqrt((p.x - p.ox) ** 2 + (p.y - p.oy) ** 2) / PULL, 1);
 
-    // ── Helper: lerp colour rest→accent based on displacement ───
     const lineColor = (r: number) => {
       const rv = Math.round(REST.r + (ACCENT.r - REST.r) * r);
       const gv = Math.round(REST.g + (ACCENT.g - REST.g) * r);
@@ -102,7 +100,7 @@ export default function GridBackground() {
       return `rgba(${rv},${gv},${bv},${a})`;
     };
 
-    // ── 2. Draw warped horizontal lines ─────────────────────────
+    // ── 2. Horizontal lines ──────────────────────────────────────
     ctx.lineWidth = 1;
     for (let r = 0; r < (grid[0]?.length ?? 0); r++) {
       for (let c = 0; c < grid.length - 1; c++) {
@@ -117,7 +115,7 @@ export default function GridBackground() {
       }
     }
 
-    // ── 3. Draw warped vertical lines ───────────────────────────
+    // ── 3. Vertical lines ────────────────────────────────────────
     for (let c = 0; c < grid.length; c++) {
       for (let r = 0; r < grid[c].length - 1; r++) {
         const p1 = grid[c][r];
@@ -131,7 +129,7 @@ export default function GridBackground() {
       }
     }
 
-    // ── 4. Draw intersection dots ────────────────────────────────
+    // ── 4. Intersection dots ─────────────────────────────────────
     for (const col of grid) {
       for (const p of col) {
         const t  = ratio(p);
@@ -146,7 +144,6 @@ export default function GridBackground() {
         ctx.fillStyle = `rgba(${rv},${gv},${bv},${a})`;
         ctx.fill();
 
-        // Soft glow halo on highly-displaced dots
         if (t > 0.4) {
           const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, sz * 5);
           grd.addColorStop(0, `rgba(${rv},${gv},${bv},${t * 0.1875})`);
@@ -162,28 +159,24 @@ export default function GridBackground() {
     rafRef.current = requestAnimationFrame(tick);
   }, []);
 
-  // ── Lifecycle ──────────────────────────────────────────────────
   useEffect(() => {
     buildGrid();
 
-    const onMove = (e: MouseEvent) => {
-      mouseRef.current = { x: e.clientX, y: e.clientY };
-    };
-    const onLeave = () => {
-      mouseRef.current = { x: -9999, y: -9999 };
-    };
-    const onResize = () => {
-      buildGrid();
-    };
+    const onMove   = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
+    const onLeave  = () => { mouseRef.current = { x: -9999, y: -9999 }; };
+    const onScroll = () => { scrollRef.current = window.scrollY; };
+    const onResize = () => { buildGrid(); };
 
-    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mousemove",  onMove);
+    window.addEventListener("scroll",     onScroll, { passive: true });
     document.addEventListener("mouseleave", onLeave);
     window.addEventListener("resize",     onResize);
 
     rafRef.current = requestAnimationFrame(tick);
 
     return () => {
-      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mousemove",  onMove);
+      window.removeEventListener("scroll",     onScroll);
       document.removeEventListener("mouseleave", onLeave);
       window.removeEventListener("resize",     onResize);
       cancelAnimationFrame(rafRef.current);

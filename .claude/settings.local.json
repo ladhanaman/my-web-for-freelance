@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(npx:*)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "WebFetch(domain:www.fancycomponents.dev)"
     ]
   }
 }
