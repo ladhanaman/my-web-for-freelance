@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx:*)",
       "Bash(npm run:*)",
-      "WebFetch(domain:www.fancycomponents.dev)"
+      "WebFetch(domain:www.fancycomponents.dev)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\(''''dependencies'''',{}\\), **d.get\\(''''devDependencies'''',{}\\)}, indent=2\\)\\)\")"
     ]
   }
 }

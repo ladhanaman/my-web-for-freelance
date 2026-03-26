@@ -1,7 +1,7 @@
 "use client"
 
-import { useRef, useEffect, useCallback } from "react"
-import ScrambleHover from "@/components/fancy/scramble-hover"
+import { useRef, useEffect, useCallback, useState } from "react"
+import ScrambleToggle from "@/components/fancy/scramble-toggle"
 
 // ── Pixel trail config — grid-snapped, time-based fade ────────────
 const CELL       = 45      // grid cell size in px (+50% again from 30)
@@ -28,7 +28,14 @@ interface Cell {
   rgb:   readonly [number, number, number]
 }
 
-const HEADLINE_TEXT = "IN-KAIROS.DEV"
+type HeroText = "IN-KAIROS.DEV" | "NAMAN-LADHA.DEV"
+// The two texts that toggle on each hover interaction
+const TEXTS: [HeroText, HeroText] = ["IN-KAIROS.DEV", "NAMAN-LADHA.DEV"]
+
+const SUBHEADINGS: Record<HeroText, string> = {
+  "IN-KAIROS.DEV": "I DESIGN, DEVELOP AND SHOOT CREATIVE EXPERIENCES",
+  "NAMAN-LADHA.DEV": "WEB AND VISUALS, DONE RIGHT!",
+}
 
 export default function HeroSection() {
   const sectionRef    = useRef<HTMLDivElement>(null)
@@ -37,48 +44,56 @@ export default function HeroSection() {
   const rafRef        = useRef<number>(0)
   const scrollHintRef = useRef<HTMLDivElement>(null)
   const headlineRef   = useRef<HTMLHeadingElement>(null)
+  // currentTextRef tracks which text is active so fit() measures the right string
+  const [activeText, setActiveText] = useState<HeroText>(TEXTS[0])
+  const currentTextRef = useRef<HeroText>(TEXTS[0])
 
-  // ── Font-fit: measure real rendered width, scale to viewport ─────
-  useEffect(() => {
-    const fit = () => {
-      const h1 = headlineRef.current
-      if (!h1) return
+  // ── Font-fit: probe the active text, scale h1 to exact viewport width ──
+  const fit = useCallback((text?: string) => {
+    const h1 = headlineRef.current
+    if (!h1) return
 
-      // Inject an invisible off-screen probe to measure text width
-      // at a known font-size, then scale to fill the viewport.
-      const fontFamily =
-        getComputedStyle(document.documentElement)
-          .getPropertyValue("--font-press-start")
-          .trim() || '"Press Start 2P"'
+    const measured = text ?? currentTextRef.current
+    const fontFamily =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--font-press-start")
+        .trim() || '"Press Start 2P"'
 
-      const probe = document.createElement("span")
-      probe.textContent = HEADLINE_TEXT
-      Object.assign(probe.style, {
-        fontFamily:  `${fontFamily}, monospace`,
-        fontSize:    "200px",
-        whiteSpace:  "nowrap",
-        visibility:  "hidden",
-        position:    "fixed",
-        top:         "-9999px",
-        left:        "-9999px",
-        pointerEvents: "none",
-      })
-      document.body.appendChild(probe)
-      const probeWidth = probe.getBoundingClientRect().width
-      document.body.removeChild(probe)
+    const probe = document.createElement("span")
+    probe.textContent = measured
+    Object.assign(probe.style, {
+      fontFamily:    `${fontFamily}, monospace`,
+      fontSize:      "200px",
+      whiteSpace:    "nowrap",
+      visibility:    "hidden",
+      position:      "fixed",
+      top:           "-9999px",
+      left:          "-9999px",
+      pointerEvents: "none",
+    })
+    document.body.appendChild(probe)
+    const probeWidth = probe.getBoundingClientRect().width
+    document.body.removeChild(probe)
 
-      if (probeWidth > 0) {
-        // Fill 100 % of viewport width
-        const px = Math.floor((window.innerWidth / probeWidth) * 200)
-        h1.style.fontSize = `${px}px`
-      }
+    if (probeWidth > 0) {
+      const px = Math.floor((window.innerWidth / probeWidth) * 200)
+      h1.style.fontSize = `${px}px`
     }
-
-    // Run after the web font is loaded
-    document.fonts.ready.then(fit)
-    window.addEventListener("resize", fit)
-    return () => window.removeEventListener("resize", fit)
   }, [])
+
+  // Called by ScrambleToggle after each transition — re-fits for new text length
+  const handleToggle = useCallback(() => {
+    const next = TEXTS.find((t) => t !== currentTextRef.current) ?? TEXTS[0]
+    currentTextRef.current = next
+    setActiveText(next)
+    fit(next)
+  }, [fit])
+
+  useEffect(() => {
+    document.fonts.ready.then(() => fit())
+    window.addEventListener("resize", () => fit())
+    return () => window.removeEventListener("resize", () => fit())
+  }, [fit])
 
   const draw = useCallback((now: number) => {
     const canvas = canvasRef.current
@@ -162,6 +177,7 @@ export default function HeroSection() {
 
   return (
     <section
+      id="home"
       ref={sectionRef}
       style={{
         position: "relative",
@@ -170,7 +186,6 @@ export default function HeroSection() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        // No overflow:hidden — allows seamless bleed into gun section
       }}
     >
       {/* Pixel trail canvas */}
@@ -192,8 +207,8 @@ export default function HeroSection() {
           bottom: 0,
           left: 0,
           right: 0,
-          height: "55%",
-          background: "linear-gradient(to bottom, transparent, #100e0c 70%)",
+          height: "30%",
+          background: "linear-gradient(to bottom, transparent, #100e0c 100%)",
           pointerEvents: "none",
           zIndex: 2,
         }}
@@ -226,14 +241,13 @@ export default function HeroSection() {
             display:       "block",
           }}
         >
-          <ScrambleHover
-            text={HEADLINE_TEXT}
-            sequential
-            revealDirection="start"
-            scrambleSpeed={40}
-            characters="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-."
+          <ScrambleToggle
+            texts={TEXTS}
+            scrambleSpeed={50}
+            maxIterations={8}
             className="text-white"
             scrambledClassName="text-[#C07548]"
+            onToggle={handleToggle}
           />
         </h1>
 
@@ -251,7 +265,7 @@ export default function HeroSection() {
             textTransform: "uppercase",
           }}
         >
-          We Build What Others Can&apos;t.
+          {SUBHEADINGS[activeText]}
         </p>
       </div>
 

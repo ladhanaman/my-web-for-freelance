@@ -153,6 +153,16 @@
 .anim-float-alt   { animation: floatAlt     11s   ease-in-out infinite; }
 .anim-glow-pulse  { animation: glowPulse    4s    ease-in-out infinite; }
 
+/* ── Framescape collection card hover ── */
+.collection-card {
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.collection-card:hover {
+  transform:    scale(1.04);
+  border-color: rgba(192,117,72,0.38);
+  box-shadow:   0 12px 40px rgba(0,0,0,0.5);
+}
+
 /* ── Card hover ── */
 .card-hover {
   transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;

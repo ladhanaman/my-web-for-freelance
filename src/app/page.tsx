@@ -1,11 +1,16 @@
 import ContactSection  from "@/components/ContactSection";
+import Framescape       from "@/components/Framescape";
 import GridBackground   from "@/components/GridBackground";
 import GunHeroClient    from "@/components/GunHeroClient";
 import HeroSection      from "@/components/HeroSection";
+import NavBar           from "@/components/NavBar";
+import { SECTION_IDS }  from "@/lib/collections";
 
 export default function Home() {
   return (
     <main className="relative" style={{ overflowX: "clip" }}>
+
+      <NavBar />
 
       {/* ── Interactive canvas grid (behind everything) ── */}
       <GridBackground />
@@ -13,8 +18,13 @@ export default function Home() {
       {/* ── Screen 1: Hero with pixel trail ── */}
       <HeroSection />
 
-      {/* ── Screen 2: Gun — 300 vh container (100 vh settle + 100 vh animate) ── */}
-      <GunHeroClient />
+      {/* ── Screen 2: Gun ── */}
+      <div id={SECTION_IDS.gun}>
+        <GunHeroClient />
+      </div>
+
+      {/* ── Screen 3: Framescape photography ── */}
+      <Framescape />
 
       {/* ── Warm gradient orbs ── */}
       <div
@@ -36,7 +46,7 @@ export default function Home() {
 
       {/* ── Contact form section ── */}
       <section
-        id="contact"
+        id={SECTION_IDS.contact}
         className="relative z-10 mx-auto w-[94%] sm:w-[85%] lg:w-[75%] xl:w-[70%] 2xl:w-[65%] max-w-[1400px] py-12 sm:py-16 lg:py-20"
       >
         <header className="mb-12 text-center anim-fade-up" style={{ animationDelay: "0ms" }}>
