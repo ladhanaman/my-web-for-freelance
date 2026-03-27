@@ -191,12 +191,12 @@ export default function Framescape() {
                */}
               <div style={{ transform: `rotate(${slot.rotate})` }}>
                 <motion.div
-                  initial={{ opacity: 0, y: 18 }}
-                  animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
                   transition={{
-                    duration: isVisible ? 0.85 : hasBeenVisible.current ? 0.55 : 0,
-                    delay: isVisible ? 0.05 : 0,
-                    ease: isVisible ? "easeOut" : "easeIn",
+                    duration: isVisible ? 1.1 : hasBeenVisible.current ? 0.5 : 0,
+                    delay: isVisible ? 0.3 + i * 0.12 : 0,
+                    ease: [0.76, 0, 0.36, 1],
                   }}
                 >
                   <CollectionCard collection={collection} />
@@ -213,7 +213,7 @@ export default function Framescape() {
         animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
         transition={{
           duration: isVisible ? 0.75 : hasBeenVisible.current ? 0.45 : 0,
-          delay: isVisible ? 0.1 : 0,
+          delay: isVisible ? 2.5 : 0,
           ease: isVisible ? "easeOut" : "easeIn",
         }}
         style={{
