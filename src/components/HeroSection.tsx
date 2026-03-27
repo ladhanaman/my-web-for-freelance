@@ -47,6 +47,7 @@ export default function HeroSection() {
   // currentTextRef tracks which text is active so fit() measures the right string
   const [activeText, setActiveText] = useState<HeroText>(TEXTS[0])
   const currentTextRef = useRef<HeroText>(TEXTS[0])
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   // ── Font-fit: probe the active text, scale h1 to exact viewport width ──
   const fit = useCallback((text?: string) => {
@@ -81,13 +82,30 @@ export default function HeroSection() {
     }
   }, [])
 
-  // Called by ScrambleToggle after each transition — re-fits for new text length
+  // Called by ScrambleToggle the moment scramble begins — fits font-size to
+  // the target text immediately so the headline width is correct during scramble
+  const handleStart = useCallback((target: string) => {
+    fit(target)
+  }, [fit])
+
+  // Called by ScrambleToggle after each transition completes
   const handleToggle = useCallback(() => {
     const next = TEXTS.find((t) => t !== currentTextRef.current) ?? TEXTS[0]
-    currentTextRef.current = next
-    setActiveText(next)
-    fit(next)
-  }, [fit])
+
+    // Phase 1 — fade out subtext
+    setIsTransitioning(true)
+
+    // Phase 2 — swap subtext after fade-out completes (font-size already correct)
+    setTimeout(() => {
+      currentTextRef.current = next
+      setActiveText(next)
+    }, 160)
+
+    // Phase 3 — fade back in
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 210)
+  }, [])
 
   useEffect(() => {
     document.fonts.ready.then(() => fit())
@@ -247,6 +265,7 @@ export default function HeroSection() {
             maxIterations={8}
             className="text-white"
             scrambledClassName="text-[#C07548]"
+            onStart={handleStart}
             onToggle={handleToggle}
           />
         </h1>
@@ -263,6 +282,10 @@ export default function HeroSection() {
             lineHeight: 1.4,
             letterSpacing: "0.04em",
             textTransform: "uppercase",
+            opacity: isTransitioning ? 0 : 1,
+            filter: isTransitioning ? "blur(4px)" : "blur(0px)",
+            transform: isTransitioning ? "translateY(6px)" : "translateY(0px)",
+            transition: "opacity 150ms ease, filter 150ms ease, transform 150ms ease",
           }}
         >
           {SUBHEADINGS[activeText]}

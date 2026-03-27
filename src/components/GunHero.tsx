@@ -1,6 +1,16 @@
 "use client"
 
-import { useRef, useEffect, useLayoutEffect, Suspense, useMemo, useCallback } from "react"
+import {
+  Component,
+  type ErrorInfo,
+  type ReactNode,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useGLTF, Environment } from "@react-three/drei"
 import * as THREE from "three"
@@ -18,6 +28,32 @@ const SCALE_END = 0.70                      // 30 % size reduction
 const X_SHIFT = 0.12                      // rightward shift as fraction of viewport width
 const SPRING = 12                        // exponential spring stiffness (higher = snappier)
 const SNAP_THRESH = 0.005                     // snap to exact target near t=0 and t=1
+
+type SceneErrorBoundaryProps = {
+  children: ReactNode
+}
+
+type SceneErrorBoundaryState = {
+  hasError: boolean
+}
+
+class SceneErrorBoundary extends Component<SceneErrorBoundaryProps, SceneErrorBoundaryState> {
+  public state: SceneErrorBoundaryState = { hasError: false }
+
+  public static getDerivedStateFromError(error: Error): SceneErrorBoundaryState {
+    void error
+    return { hasError: true }
+  }
+
+  public componentDidCatch(error: Error, info: ErrorInfo): void {
+    console.error("GunHero scene failed to render an optional environment map.", error, info)
+  }
+
+  public render(): ReactNode {
+    if (this.state.hasError) return null
+    return this.props.children
+  }
+}
 
 // Cubic ease-in-out — smooth S-curve, same curve drives all three transforms
 function ease(t: number): number {
@@ -46,8 +82,9 @@ function GunModel({ progress }: { progress: { current: number } }) {
   // Smoothed animated state (driven toward scroll-derived targets each frame)
   const cur = useRef({ rotY: -Math.PI / 2, scale: 1, x: 0 })
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!group.current) return
+    void state
 
     const t = Math.max(0, Math.min(progress.current, 1))
     const e = ease(t)
@@ -238,7 +275,9 @@ export default function GunHero() {
               color="#d4895e"
             />
             <GunModel progress={scrollProgress} />
-            <Environment preset="night" />
+            <SceneErrorBoundary>
+              <Environment files="/env/dikhololo_night_1k.hdr" />
+            </SceneErrorBoundary>
           </Suspense>
         </Canvas>
 

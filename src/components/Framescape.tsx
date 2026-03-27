@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useRef, useState } from "react"
+import { motion } from "motion/react"
 import Link from "next/link"
 import Floating, { FloatingElement } from "@/components/fancy/image/parallax-floating"
 import {
@@ -9,18 +11,27 @@ import {
   type Collection,
 } from "@/lib/collections"
 
-// ── Layout slots for collection cards (up to 8, cycles if more)
+// ── Layout slots for collection cards — 9 total
 // top/left are percentage strings relative to the section
 // depth controls parallax intensity (higher = moves more)
+// All cards are 4:3 — height ≈ 75% of width
 const SLOTS = [
-  { top: "7%",  left: "1%",   rotate: "-4deg", depth: 2.0, width: 172 },
-  { top: "3%",  left: "63%",  rotate:  "3deg", depth: 3.5, width: 196 },
-  { top: "42%", left: "2%",   rotate: "-6deg", depth: 1.5, width: 152 },
-  { top: "32%", left: "71%",  rotate:  "5deg", depth: 2.8, width: 180 },
-  { top: "62%", left: "66%",  rotate: "-3deg", depth: 2.5, width: 168 },
-  { top: "70%", left: "13%",  rotate:  "7deg", depth: 3.0, width: 148 },
-  { top: "12%", left: "48%",  rotate: "-2deg", depth: 2.2, width: 164 },
-  { top: "72%", left: "42%",  rotate:  "4deg", depth: 3.5, width: 184 },
+  // Top-left step
+  { top: "13%", left: "2%",  rotate: "-2deg", depth: 1.05, width: "clamp(175px, 15vw, 270px)" },
+  { top: "30%", left: "19%", rotate:  "2deg", depth: 1.15, width: "clamp(175px, 15vw, 270px)" },
+  // Top-center
+  { top: "11%", left: "42%", rotate: "-1deg", depth: 0.95, width: "clamp(175px, 15vw, 270px)" },
+  // Top-right step
+  { top: "13%", left: "64%", rotate:  "1deg", depth: 1.2,  width: "clamp(175px, 15vw, 270px)" },
+  { top: "30%", left: "80%", rotate: "-2deg", depth: 0.9,  width: "clamp(175px, 15vw, 270px)" },
+  // Mid-left
+  { top: "50%", left: "2%",  rotate:  "0deg", depth: 1.1,  width: "clamp(175px, 15vw, 270px)" },
+  // Mid-right
+  { top: "50%", left: "73%", rotate: "-1deg", depth: 1.05, width: "clamp(175px, 15vw, 270px)" },
+  // Bottom-left
+  { top: "71%", left: "10%", rotate:  "1deg", depth: 1.0,  width: "clamp(175px, 15vw, 270px)" },
+  // Bottom-right
+  { top: "71%", left: "64%", rotate: "-1deg", depth: 1.1,  width: "clamp(175px, 15vw, 270px)" },
 ] as const
 
 function CollectionCard({ collection }: { collection: Collection }) {
@@ -30,21 +41,20 @@ function CollectionCard({ collection }: { collection: Collection }) {
       className="collection-card"
       style={{
         display:        "block",
-        background:     "#1a1612",
-        border:         "1px solid rgba(192,117,72,0.15)",
-        borderRadius:   4,
+        background:     "transparent",
+        border:         "none",
+        borderRadius:   0,
         overflow:       "hidden",
         textDecoration: "none",
         userSelect:     "none",
       }}
     >
-      {/* Photo area — portrait aspect ratio */}
       <div
         style={{
           position:    "relative",
-          aspectRatio: "3/4",
           width:       "100%",
-          background:  "#0e0c0a",
+          aspectRatio: "4 / 3",
+          background:  "#000",
           overflow:    "hidden",
         }}
       >
@@ -78,76 +88,94 @@ function CollectionCard({ collection }: { collection: Collection }) {
           <span style={{ color: "rgba(192,117,72,0.25)", fontSize: "2rem" }}>✦</span>
         </div>
       </div>
-
-      {/* Label row */}
-      <div
-        style={{
-          padding:        "0.7rem 0.85rem",
-          display:        "flex",
-          alignItems:     "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <span
-          style={{
-            fontSize:      "0.68rem",
-            fontWeight:    600,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            color:         "#8c7f74",
-          }}
-        >
-          {collection.name}
-        </span>
-        <span style={{ color: "rgba(192,117,72,0.5)", fontSize: "0.75rem" }}>→</span>
-      </div>
     </Link>
   )
 }
 
 export default function Framescape() {
+  const sectionRef     = useRef<HTMLElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const hasBeenVisible = useRef(false)
+  // Ensures the scroll-lock only ever fires once per page load
+  const hasLocked      = useRef(false)
+
+  // ── 30 % visibility → trigger card animation (re-fires on every entry) ──
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry) return
+        const visible = entry.intersectionRatio >= 0.3
+        if (visible) hasBeenVisible.current = true
+        setIsVisible(visible)
+      },
+      { threshold: [0, 0.3] }
+    )
+
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [])
+
+  // ── 100 % visibility → stick the window for 10 s (first time only) ──────
+  useEffect(() => {
+    const section = sectionRef.current
+    if (!section) return
+
+    const lockObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry || hasLocked.current) return
+
+        // intersectionRatio >= 0.95 fires on BOTH entry (section arriving from
+        // below) AND exit (section leaving from top). Distinguish via
+        // boundingClientRect.top:
+        //   top >= 0 → section top is at/below the viewport top → entering ✓
+        //   top <  0 → section top is above the viewport → scrolled past   ✗
+        const entering = entry.boundingClientRect.top >= 0
+        if (entry.intersectionRatio >= 0.95 && entering) {
+          hasLocked.current = true
+          lockObserver.disconnect()
+
+          // Snap instantly to exact alignment so the section fills the viewport.
+          // We use an instant (non-smooth) scroll because a smooth scroll scrolls
+          // DOWN ~40 px, which pulls the contact section up to the viewport
+          // bottom and lets it bleed in. An instant snap + immediate overflow:hidden
+          // fires before the next paint, so nothing outside Framescape appears.
+          const rect = section.getBoundingClientRect()
+          window.scrollTo(0, window.scrollY + rect.top)
+
+          // Hard lock — clamps the entire page at this exact scroll position
+          document.documentElement.style.overflow = "hidden"
+
+          // Release after 10 s
+          setTimeout(() => {
+            document.documentElement.style.overflow = ""
+          }, 10000)
+        }
+      },
+      { threshold: 0.95 }
+    )
+
+    lockObserver.observe(section)
+    return () => {
+      lockObserver.disconnect()
+      document.documentElement.style.overflow = ""
+    }
+  }, [])
+
   return (
     <section
       id={SECTION_IDS.photography}
+      ref={sectionRef}
       style={{
         position:   "relative",
         height:     "100vh",
-        background: "#100e0c",
         overflow:   "hidden",
       }}
     >
-      {/* Blend gradient — merges with GunHero bottom */}
-      <div
-        aria-hidden
-        style={{
-          position:      "absolute",
-          top:           0,
-          left:          0,
-          right:         0,
-          height:        "22%",
-          background:    "linear-gradient(to bottom, #100e0c 0%, transparent 100%)",
-          pointerEvents: "none",
-          zIndex:        5,
-        }}
-      />
-
-      {/* Blend gradient — merges with Contact section below */}
-      <div
-        aria-hidden
-        style={{
-          position:      "absolute",
-          bottom:        0,
-          left:          0,
-          right:         0,
-          height:        "18%",
-          background:    "linear-gradient(to bottom, transparent 0%, #100e0c 100%)",
-          pointerEvents: "none",
-          zIndex:        5,
-        }}
-      />
-
       {/* Floating collection card layer */}
-      <Floating sensitivity={0.9} easingFactor={0.045} className="z-[4]">
+      <Floating sensitivity={1.1} easingFactor={0.1} className="z-[4]">
         {COLLECTIONS.slice(0, SLOTS.length).map((collection, i) => {
           const slot = SLOTS[i % SLOTS.length]
           return (
@@ -156,29 +184,38 @@ export default function Framescape() {
               depth={slot.depth}
               style={{ top: slot.top, left: slot.left, width: slot.width }}
             >
-              {/* Rotation wrapper — FloatingElement controls translate3d, this handles tilt */}
+              {/*
+               * Rotation lives on a plain div — keeps it fully out of Framer
+               * Motion's transform computation so there's no override conflict.
+               * motion.div only animates opacity + a subtle y lift.
+               */}
               <div style={{ transform: `rotate(${slot.rotate})` }}>
-                <CollectionCard collection={collection} />
+                <motion.div
+                  initial={{ opacity: 0, y: 18 }}
+                  animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
+                  transition={{
+                    duration: isVisible ? 0.85 : hasBeenVisible.current ? 0.55 : 0,
+                    delay:    isVisible ? 0.05 : 0,
+                    ease:     isVisible ? "easeOut" : "easeIn",
+                  }}
+                >
+                  <CollectionCard collection={collection} />
+                </motion.div>
               </div>
             </FloatingElement>
           )
         })}
       </Floating>
 
-      {/* Radial backdrop behind the title so text stays readable over cards */}
-      <div
-        aria-hidden
-        style={{
-          position:      "absolute",
-          inset:         0,
-          background:    "radial-gradient(ellipse 60% 55% at 50% 50%, rgba(16,14,12,0.78) 0%, transparent 100%)",
-          pointerEvents: "none",
-          zIndex:        8,
-        }}
-      />
-
       {/* Section title — centered, rendered above floating cards */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+        transition={{
+          duration: isVisible ? 0.75 : hasBeenVisible.current ? 0.45 : 0,
+          delay:    isVisible ? 0.1 : 0,
+          ease:     isVisible ? "easeOut" : "easeIn",
+        }}
         style={{
           position:       "absolute",
           inset:          0,
@@ -192,58 +229,22 @@ export default function Framescape() {
           padding:        "0 1.5rem",
         }}
       >
-        {/* Section label with dividers */}
-        <div
-          style={{
-            display:      "flex",
-            alignItems:   "center",
-            gap:          "0.85rem",
-            marginBottom: "1.1rem",
-          }}
-        >
-          <div style={{ height: 1, width: 40, background: "rgba(192,117,72,0.45)" }} />
-          <span
-            style={{
-              fontSize:      "0.68rem",
-              fontWeight:    700,
-              letterSpacing: "0.26em",
-              textTransform: "uppercase",
-              color:         "#C07548",
-            }}
-          >
-            Photography
-          </span>
-          <div style={{ height: 1, width: 40, background: "rgba(192,117,72,0.45)" }} />
-        </div>
-
         {/* Main title */}
         <h2
           style={{
-            fontSize:      "clamp(3rem, 7vw, 6.5rem)",
-            fontWeight:    800,
-            letterSpacing: "-0.04em",
+            fontSize:      "clamp(2.3rem, 4.9vw, 4.6rem)",
+            fontFamily:    "Georgia, 'Times New Roman', serif",
+            fontStyle:     "italic",
+            fontWeight:    600,
+            letterSpacing: "-0.02em",
             lineHeight:    1,
             color:         "#f2ede8",
             margin:        0,
           }}
         >
-          Framescape
+          fancy.
         </h2>
-
-        {/* Subtitle */}
-        <p
-          style={{
-            marginTop:     "1.2rem",
-            fontSize:      "clamp(0.85rem, 1.4vw, 1.05rem)",
-            fontStyle:     "italic",
-            color:         "#5a5048",
-            letterSpacing: "0.02em",
-            lineHeight:    1.5,
-          }}
-        >
-          A visual record. Click any collection to explore.
-        </p>
-      </div>
+      </motion.div>
     </section>
   )
 }

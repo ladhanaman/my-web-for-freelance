@@ -3,8 +3,18 @@
 import React, { useEffect, useRef, useState } from "react"
 import { InertiaOptions, motion } from "motion/react"
 
+type InitialPosition = {
+  x?: number | string
+  y?: number | string
+  rotate?: number
+}
+
 type DragElementsProps = {
   children: React.ReactNode
+  /** Per-child initial positions applied as Framer Motion style (x/y/rotate).
+   *  Using style instead of a CSS transform on the child keeps the motion.div's
+   *  hit area correctly aligned with the visual position. */
+  initialPositions?: InitialPosition[]
   dragElastic?:
     | number
     | { top?: number; left?: number; right?: number; bottom?: number }
@@ -21,6 +31,7 @@ type DragElementsProps = {
 
 const DragElements: React.FC<DragElementsProps> = ({
   children,
+  initialPositions,
   dragElastic = 0.5,
   dragConstraints,
   dragMomentum = true,
@@ -31,7 +42,6 @@ const DragElements: React.FC<DragElementsProps> = ({
 }) => {
   const constraintsRef = useRef<HTMLDivElement>(null)
   const [zIndices, setZIndices] = useState<number[]>([])
-
   const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
@@ -42,43 +52,48 @@ const DragElements: React.FC<DragElementsProps> = ({
 
   const bringToFront = (index: number) => {
     if (selectedOnTop) {
-      setZIndices((prevIndices) => {
-        const newIndices = [...prevIndices]
-        const currentIndex = newIndices.indexOf(index)
-        newIndices.splice(currentIndex, 1)
-        newIndices.push(index)
-        return newIndices
+      setZIndices((prev) => {
+        const next = [...prev]
+        const cur = next.indexOf(index)
+        next.splice(cur, 1)
+        next.push(index)
+        return next
       })
     }
   }
 
   return (
     <div ref={constraintsRef} className={`relative w-full h-full ${className}`}>
-      {React.Children.map(children, (child, index) => (
-        <motion.div
-          key={index}
-          drag
-          dragElastic={dragElastic}
-          dragConstraints={dragConstraints || constraintsRef}
-          dragMomentum={dragMomentum}
-          dragTransition={dragTransition}
-          dragPropagation={dragPropagation}
-          style={{
-            zIndex: zIndices.indexOf(index),
-
-            cursor: isDragging ? "grabbing" : "grab",
-          }}
-          onDragStart={() => {
-            bringToFront(index)
-            setIsDragging(true)
-          }}
-          onDragEnd={() => setIsDragging(false)}
-          whileDrag={{ cursor: "grabbing" }}
-          className={"absolute"}
-        >
-          {child}
-        </motion.div>
-      ))}
+      {React.Children.map(children, (child, index) => {
+        const initPos = initialPositions?.[index]
+        return (
+          <motion.div
+            key={index}
+            drag
+            dragElastic={dragElastic}
+            dragConstraints={dragConstraints || constraintsRef}
+            dragMomentum={dragMomentum}
+            dragTransition={dragTransition}
+            dragPropagation={dragPropagation}
+            style={{
+              x:      initPos?.x,
+              y:      initPos?.y,
+              rotate: initPos?.rotate,
+              zIndex: zIndices.indexOf(index),
+              cursor: isDragging ? "grabbing" : "grab",
+            }}
+            onDragStart={() => {
+              bringToFront(index)
+              setIsDragging(true)
+            }}
+            onDragEnd={() => setIsDragging(false)}
+            whileDrag={{ cursor: "grabbing" }}
+            className="absolute"
+          >
+            {child}
+          </motion.div>
+        )
+      })}
     </div>
   )
 }

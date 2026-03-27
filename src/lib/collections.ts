@@ -161,4 +161,12 @@ export const COLLECTIONS: Collection[] = [
       "/photos/candid/07.jpg",
     ],
   },
+  {
+    // ← rename slug/name/description to match your 9th collection
+    slug:        "abstract",
+    name:        "Abstract",
+    description: "Shape, texture, and light",
+    coverPhoto:  "/photos/abstract/cover.jpg",
+    photos: [],
+  },
 ]

@@ -4,7 +4,21 @@
       "Bash(npx:*)",
       "Bash(npm run:*)",
       "WebFetch(domain:www.fancycomponents.dev)",
-      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\(''''dependencies'''',{}\\), **d.get\\(''''devDependencies'''',{}\\)}, indent=2\\)\\)\")"
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({**d.get\\(''''dependencies'''',{}\\), **d.get\\(''''devDependencies'''',{}\\)}, indent=2\\)\\)\")",
+      "Bash(curl -s \"https://fancycomponents.dev/r/drag-elements.json\")",
+      "Bash(curl -Ls \"https://fancycomponents.dev/r/drag-elements.json\")",
+      "Bash(for i:*)",
+      "Bash(do curl:*)",
+      "Bash(echo \"portraits/0$i.jpg done\")",
+      "Bash(done)",
+      "Bash(echo \"street/0$i.jpg done\")",
+      "Bash(echo \"done $i\")",
+      "Bash(curl -sL \"https://picsum.photos/seed/cvr-portraits/600/800\" -o portraits/cover.jpg)",
+      "Bash(curl -sL \"https://picsum.photos/seed/cvr-street/600/800\" -o street/cover.jpg)",
+      "Bash(curl -sL \"https://picsum.photos/seed/cvr-land/800/600\" -o landscapes/cover.jpg)",
+      "Bash(curl -sL \"https://picsum.photos/seed/cvr-nature/600/800\" -o nature/cover.jpg)",
+      "Bash(curl -sL \"https://picsum.photos/seed/cvr-arch/600/800\" -o architecture/cover.jpg)",
+      "Bash(curl -sL \"https://picsum.photos/seed/golden3/600/800\" -o /Users/naman/Desktop/Projects/my-web/public/photos/golden-hour/03.jpg)"
     ]
   }
 }

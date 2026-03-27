@@ -20,7 +20,7 @@ interface Pt {
   vx: number; vy: number;
 }
 
-export default function GridBackground() {
+export default function GridBackground({ alwaysActive = false }: { alwaysActive?: boolean }) {
   const canvasRef  = useRef<HTMLCanvasElement>(null);
   const gridRef    = useRef<Pt[][]>([]);
   const mouseRef   = useRef({ x: -9999, y: -9999 });
@@ -61,8 +61,8 @@ export default function GridBackground() {
     const { x: mx, y: my } = mouseRef.current;
     const grid = gridRef.current;
 
-    // Disable magnetism while the hero section is in view
-    const onHero = scrollRef.current < window.innerHeight;
+    // Disable magnetism while the hero section is in view (skip on pages that opt out)
+    const onHero = !alwaysActive && scrollRef.current < window.innerHeight;
 
     ctx.clearRect(0, 0, W, H);
 
