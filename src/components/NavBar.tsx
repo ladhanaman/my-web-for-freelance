@@ -5,7 +5,7 @@ import { SECTION_IDS, PAGE_NAMES } from "@/lib/collections"
 
 const SECTIONS = [
   { id: SECTION_IDS.hero,        label: "Home"             },
-  { id: SECTION_IDS.gun,         label: "Work"             },
+  { id: SECTION_IDS.gun,         label: "Gun"              },
   { id: SECTION_IDS.photography, label: PAGE_NAMES.photography },
   { id: SECTION_IDS.contact,     label: "Contact"          },
 ] as const

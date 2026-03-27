@@ -232,10 +232,10 @@ export default function Framescape() {
         {/* Main title */}
         <h2
           style={{
-            fontSize: "clamp(1.6rem, 4.9vw, 4.6rem)",
-            fontFamily: "Georgia, 'Times New Roman', serif",
-            fontStyle: "italic",
-            fontWeight: 600,
+            fontSize: "clamp(1.1rem, 3.4vw, 3.2rem)",
+            fontFamily: "var(--font-press-start), monospace",
+            fontStyle: "normal",
+            fontWeight: 400,
             letterSpacing: "-0.02em",
             lineHeight: 1,
             color: "#f2ede8",

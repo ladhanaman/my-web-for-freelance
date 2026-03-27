@@ -64,7 +64,13 @@ export default function Home() {
               </span>
               <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-[#f2ede8] sm:text-5xl lg:text-[3.4rem] lg:leading-tight">
+            <h1 style={{
+              fontSize: "clamp(2.6rem, 5.2vw, 5rem)",
+              fontWeight: 800,
+              lineHeight: 1.08,
+              letterSpacing: "-0.04em",
+              color: "#f2ede8",
+            }}>
               Let&apos;s Talk About Your Project
             </h1>
             <p className="mt-4 text-base text-[#8c7f74] sm:text-lg max-w-lg mx-auto leading-relaxed">
