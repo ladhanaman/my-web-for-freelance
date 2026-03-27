@@ -18,7 +18,9 @@
       "Bash(curl -sL \"https://picsum.photos/seed/cvr-land/800/600\" -o landscapes/cover.jpg)",
       "Bash(curl -sL \"https://picsum.photos/seed/cvr-nature/600/800\" -o nature/cover.jpg)",
       "Bash(curl -sL \"https://picsum.photos/seed/cvr-arch/600/800\" -o architecture/cover.jpg)",
-      "Bash(curl -sL \"https://picsum.photos/seed/golden3/600/800\" -o /Users/naman/Desktop/Projects/my-web/public/photos/golden-hour/03.jpg)"
+      "Bash(curl -sL \"https://picsum.photos/seed/golden3/600/800\" -o /Users/naman/Desktop/Projects/my-web/public/photos/golden-hour/03.jpg)",
+      "WebFetch(domain:fancycomponents.dev)",
+      "WebSearch"
     ]
   }
 }

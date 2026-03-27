@@ -17,21 +17,21 @@ import {
 // All cards are 4:3 — height ≈ 75% of width
 const SLOTS = [
   // Top-left step
-  { top: "13%", left: "2%",  rotate: "-2deg", depth: 1.05, width: "clamp(175px, 15vw, 270px)" },
-  { top: "30%", left: "19%", rotate:  "2deg", depth: 1.15, width: "clamp(175px, 15vw, 270px)" },
+  { top: "13%", left: "2%",  rotate: "-2deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
+  { top: "30%", left: "19%", rotate:  "2deg", depth: 1.15, width: "clamp(100px, 15vw, 260px)" },
   // Top-center
-  { top: "11%", left: "42%", rotate: "-1deg", depth: 0.95, width: "clamp(175px, 15vw, 270px)" },
+  { top: "11%", left: "42%", rotate: "-1deg", depth: 0.95, width: "clamp(100px, 15vw, 260px)" },
   // Top-right step
-  { top: "13%", left: "64%", rotate:  "1deg", depth: 1.2,  width: "clamp(175px, 15vw, 270px)" },
-  { top: "30%", left: "80%", rotate: "-2deg", depth: 0.9,  width: "clamp(175px, 15vw, 270px)" },
+  { top: "13%", left: "64%", rotate:  "1deg", depth: 1.2,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "30%", left: "80%", rotate: "-2deg", depth: 0.9,  width: "clamp(100px, 15vw, 260px)" },
   // Mid-left
-  { top: "50%", left: "2%",  rotate:  "0deg", depth: 1.1,  width: "clamp(175px, 15vw, 270px)" },
+  { top: "50%", left: "2%",  rotate:  "0deg", depth: 1.1,  width: "clamp(100px, 15vw, 260px)" },
   // Mid-right
-  { top: "50%", left: "73%", rotate: "-1deg", depth: 1.05, width: "clamp(175px, 15vw, 270px)" },
+  { top: "50%", left: "73%", rotate: "-1deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
   // Bottom-left
-  { top: "71%", left: "10%", rotate:  "1deg", depth: 1.0,  width: "clamp(175px, 15vw, 270px)" },
+  { top: "71%", left: "10%", rotate:  "1deg", depth: 1.0,  width: "clamp(100px, 15vw, 260px)" },
   // Bottom-right
-  { top: "71%", left: "64%", rotate: "-1deg", depth: 1.1,  width: "clamp(175px, 15vw, 270px)" },
+  { top: "71%", left: "64%", rotate: "-1deg", depth: 1.1,  width: "clamp(100px, 15vw, 260px)" },
 ] as const
 
 function CollectionCard({ collection }: { collection: Collection }) {
@@ -151,7 +151,7 @@ export default function Framescape() {
           // Release after 10 s
           setTimeout(() => {
             document.documentElement.style.overflow = ""
-          }, 10000)
+          }, 8000)
         }
       },
       { threshold: 0.95 }
@@ -232,7 +232,7 @@ export default function Framescape() {
         {/* Main title */}
         <h2
           style={{
-            fontSize:      "clamp(2.3rem, 4.9vw, 4.6rem)",
+            fontSize:      "clamp(1.6rem, 4.9vw, 4.6rem)",
             fontFamily:    "Georgia, 'Times New Roman', serif",
             fontStyle:     "italic",
             fontWeight:    600,
@@ -242,7 +242,7 @@ export default function Framescape() {
             margin:        0,
           }}
         >
-          fancy.
+          blink. missed it.
         </h2>
       </motion.div>
     </section>
