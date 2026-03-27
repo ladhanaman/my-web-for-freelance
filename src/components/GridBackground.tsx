@@ -164,7 +164,21 @@ export default function GridBackground({ alwaysActive = false }: { alwaysActive?
 
     const onMove   = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
     const onLeave  = () => { mouseRef.current = { x: -9999, y: -9999 }; };
-    const onScroll = () => { scrollRef.current = window.scrollY; };
+    const onScroll = () => {
+      scrollRef.current = window.scrollY;
+      // Clip the fixed canvas so it never bleeds into the footer (outside <main>)
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const main = canvas.closest("main");
+        if (main) {
+          const mainBottom = main.getBoundingClientRect().bottom;
+          const viewH      = window.innerHeight;
+          canvas.style.clipPath = mainBottom < viewH
+            ? `inset(0 0 ${Math.round(viewH - mainBottom)}px 0)`
+            : "";
+        }
+      }
+    };
     const onResize = () => { buildGrid(); };
 
     window.addEventListener("mousemove",  onMove);

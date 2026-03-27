@@ -17,21 +17,21 @@ import {
 // All cards are 4:3 — height ≈ 75% of width
 const SLOTS = [
   // Top-left step
-  { top: "13%", left: "2%",  rotate: "-2deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
-  { top: "30%", left: "19%", rotate:  "2deg", depth: 1.15, width: "clamp(100px, 15vw, 260px)" },
+  { top: "13%", left: "2%", rotate: "-2deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
+  { top: "30%", left: "19%", rotate: "2deg", depth: 1.15, width: "clamp(100px, 15vw, 260px)" },
   // Top-center
   { top: "11%", left: "42%", rotate: "-1deg", depth: 0.95, width: "clamp(100px, 15vw, 260px)" },
   // Top-right step
-  { top: "13%", left: "64%", rotate:  "1deg", depth: 1.2,  width: "clamp(100px, 15vw, 260px)" },
-  { top: "30%", left: "80%", rotate: "-2deg", depth: 0.9,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "13%", left: "64%", rotate: "1deg", depth: 1.2, width: "clamp(100px, 15vw, 260px)" },
+  { top: "30%", left: "80%", rotate: "-2deg", depth: 0.9, width: "clamp(100px, 15vw, 260px)" },
   // Mid-left
-  { top: "50%", left: "2%",  rotate:  "0deg", depth: 1.1,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "50%", left: "2%", rotate: "0deg", depth: 1.1, width: "clamp(100px, 15vw, 260px)" },
   // Mid-right
   { top: "50%", left: "73%", rotate: "-1deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
   // Bottom-left
-  { top: "71%", left: "10%", rotate:  "1deg", depth: 1.0,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "71%", left: "10%", rotate: "1deg", depth: 1.0, width: "clamp(100px, 15vw, 260px)" },
   // Bottom-right
-  { top: "71%", left: "64%", rotate: "-1deg", depth: 1.1,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "71%", left: "64%", rotate: "-1deg", depth: 1.1, width: "clamp(100px, 15vw, 260px)" },
 ] as const
 
 function CollectionCard({ collection }: { collection: Collection }) {
@@ -40,22 +40,22 @@ function CollectionCard({ collection }: { collection: Collection }) {
       href={`${GALLERY_BASE_PATH}/${collection.slug}`}
       className="collection-card"
       style={{
-        display:        "block",
-        background:     "transparent",
-        border:         "none",
-        borderRadius:   0,
-        overflow:       "hidden",
+        display: "block",
+        background: "transparent",
+        border: "none",
+        borderRadius: 0,
+        overflow: "hidden",
         textDecoration: "none",
-        userSelect:     "none",
+        userSelect: "none",
       }}
     >
       <div
         style={{
-          position:    "relative",
-          width:       "100%",
+          position: "relative",
+          width: "100%",
           aspectRatio: "4 / 3",
-          background:  "#000",
-          overflow:    "hidden",
+          background: "#000",
+          overflow: "hidden",
         }}
       >
         {collection.coverPhoto && (
@@ -77,12 +77,12 @@ function CollectionCard({ collection }: { collection: Collection }) {
         <div
           aria-hidden
           style={{
-            display:        collection.coverPhoto ? "none" : "flex",
-            position:       "absolute",
-            inset:          0,
-            alignItems:     "center",
+            display: collection.coverPhoto ? "none" : "flex",
+            position: "absolute",
+            inset: 0,
+            alignItems: "center",
             justifyContent: "center",
-            background:     "linear-gradient(135deg, #1a1612 0%, #0e0c0a 100%)",
+            background: "linear-gradient(135deg, #1a1612 0%, #0e0c0a 100%)",
           }}
         >
           <span style={{ color: "rgba(192,117,72,0.25)", fontSize: "2rem" }}>✦</span>
@@ -93,11 +93,11 @@ function CollectionCard({ collection }: { collection: Collection }) {
 }
 
 export default function Framescape() {
-  const sectionRef     = useRef<HTMLElement>(null)
+  const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const hasBeenVisible = useRef(false)
   // Ensures the scroll-lock only ever fires once per page load
-  const hasLocked      = useRef(false)
+  const hasLocked = useRef(false)
 
   // ── 30 % visibility → trigger card animation (re-fires on every entry) ──
   useEffect(() => {
@@ -118,7 +118,7 @@ export default function Framescape() {
     return () => observer.disconnect()
   }, [])
 
-  // ── 100 % visibility → stick the window for 10 s (first time only) ──────
+  // ── 100 % visibility → stick the window for 4 s (first time only) ───────
   useEffect(() => {
     const section = sectionRef.current
     if (!section) return
@@ -148,10 +148,10 @@ export default function Framescape() {
           // Hard lock — clamps the entire page at this exact scroll position
           document.documentElement.style.overflow = "hidden"
 
-          // Release after 10 s
+          // Release after 4 s
           setTimeout(() => {
             document.documentElement.style.overflow = ""
-          }, 8000)
+          }, 4000)
         }
       },
       { threshold: 0.95 }
@@ -169,9 +169,9 @@ export default function Framescape() {
       id={SECTION_IDS.photography}
       ref={sectionRef}
       style={{
-        position:   "relative",
-        height:     "100vh",
-        overflow:   "hidden",
+        position: "relative",
+        height: "100vh",
+        overflow: "hidden",
       }}
     >
       {/* Floating collection card layer */}
@@ -195,8 +195,8 @@ export default function Framescape() {
                   animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
                   transition={{
                     duration: isVisible ? 0.85 : hasBeenVisible.current ? 0.55 : 0,
-                    delay:    isVisible ? 0.05 : 0,
-                    ease:     isVisible ? "easeOut" : "easeIn",
+                    delay: isVisible ? 0.05 : 0,
+                    ease: isVisible ? "easeOut" : "easeIn",
                   }}
                 >
                   <CollectionCard collection={collection} />
@@ -213,33 +213,33 @@ export default function Framescape() {
         animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
         transition={{
           duration: isVisible ? 0.75 : hasBeenVisible.current ? 0.45 : 0,
-          delay:    isVisible ? 0.1 : 0,
-          ease:     isVisible ? "easeOut" : "easeIn",
+          delay: isVisible ? 0.1 : 0,
+          ease: isVisible ? "easeOut" : "easeIn",
         }}
         style={{
-          position:       "absolute",
-          inset:          0,
-          display:        "flex",
-          flexDirection:  "column",
-          alignItems:     "center",
+          position: "absolute",
+          inset: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
           justifyContent: "center",
-          zIndex:         10,
-          pointerEvents:  "none",
-          textAlign:      "center",
-          padding:        "0 1.5rem",
+          zIndex: 10,
+          pointerEvents: "none",
+          textAlign: "center",
+          padding: "0 1.5rem",
         }}
       >
         {/* Main title */}
         <h2
           style={{
-            fontSize:      "clamp(1.6rem, 4.9vw, 4.6rem)",
-            fontFamily:    "Georgia, 'Times New Roman', serif",
-            fontStyle:     "italic",
-            fontWeight:    600,
+            fontSize: "clamp(1.6rem, 4.9vw, 4.6rem)",
+            fontFamily: "Georgia, 'Times New Roman', serif",
+            fontStyle: "italic",
+            fontWeight: 600,
             letterSpacing: "-0.02em",
-            lineHeight:    1,
-            color:         "#f2ede8",
-            margin:        0,
+            lineHeight: 1,
+            color: "#f2ede8",
+            margin: 0,
           }}
         >
           blink. missed it.

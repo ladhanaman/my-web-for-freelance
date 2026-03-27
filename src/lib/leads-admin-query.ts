@@ -66,5 +66,5 @@ export function buildAdminHref(filters: Partial<AdminLeadFilters>): string {
   }
 
   const query = params.toString();
-  return query ? `/admin?${query}` : "/admin";
+  return query ? `/admin/leads?${query}` : "/admin/leads";
 }

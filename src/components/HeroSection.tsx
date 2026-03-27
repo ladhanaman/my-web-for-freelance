@@ -4,7 +4,7 @@ import { useRef, useEffect, useCallback, useState } from "react"
 import ScrambleToggle from "@/components/fancy/scramble-toggle"
 
 // ── Pixel trail config — grid-snapped, time-based fade ────────────
-const CELL       = 45      // grid cell size in px (+50% again from 30)
+const CELL       = 51.75   // grid cell size in px (+15% from 45)
 const DECAY_MS   = 900     // total fade duration in ms
 const TRAIL_MAX  = 120     // max active cells at once
 

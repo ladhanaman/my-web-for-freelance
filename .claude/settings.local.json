@@ -20,7 +20,11 @@
       "Bash(curl -sL \"https://picsum.photos/seed/cvr-arch/600/800\" -o architecture/cover.jpg)",
       "Bash(curl -sL \"https://picsum.photos/seed/golden3/600/800\" -o /Users/naman/Desktop/Projects/my-web/public/photos/golden-hour/03.jpg)",
       "WebFetch(domain:fancycomponents.dev)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(node:*)",
+      "Bash(curl -s http://localhost:3000)",
+      "Bash(find /Users/naman/Desktop/Projects/my-web -name *framescape* -o -name *Framescape*)",
+      "Bash(find /Users/naman/Desktop/Projects/my-web/public -name *.woff* -o -name *.ttf* -o -name *.otf*)"
     ]
   }
 }

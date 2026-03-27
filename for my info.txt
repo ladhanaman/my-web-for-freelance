@@ -1,0 +1,56 @@
+ ---                                                                                                                                                          
+  1. GridBackground
+  Magnetic Elastic Grid (or Interactive Mesh Distortion)                                                                                                       
+  Grid intersection points are spring-physics particles pulled toward the cursor. The pattern — particles with velocity, spring stiffness, and damping — is
+  called a spring-mass system. Common in creative agency sites.                                                                                                
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  2. HeroSection canvas                                                                                                                                        
+  Grid-snapped Cursor Trail (or Pixelated Mouse Trail)      
+  Broader category: Cursor Particle Trail. The grid-snapping gives it the pixel art aesthetic. The time-based fade using performance.now() is standard in
+  canvas-based trail effects.
+                                                                                                                                                               
+  ---
+  3. ScrambleToggle                                                                                                                                            
+  Text Scramble Effect (also called Hacker Text, Glitch Text, or Caesar Scramble)
+  Popularised by sites like Linear.app and Vercel. The requestAnimationFrame-driven random character swap before resolving to the target string is the
+  industry-standard implementation.                                                                                                                            
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  4. GunHero — overall section                                                                                                                                 
+  Scroll-Driven 3D Scene using a Sticky Scroll container                                                                                                       
+  The 200vh outer / 100vh sticky inner pattern is called a scroll canvas or scrollytelling section. The spring interpolation (1 - Math.exp(-stiffness * delta))
+   is exponential smoothing, the standard for frame-rate-independent spring physics in 3D.                                                                     
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  5. Framescape floating cards                                                                                                                                 
+  Cursor Parallax (or Mouse Parallax with Depth Layers)                                                                                                        
+  Each card has a depth value controlling how much it moves — this layered movement creates a parallax depth illusion. Sometimes called tilt parallax or
+  perspective parallax.                                                                                                                                        
+                                                                                                                                                               
+  ---
+  6. Framescape scroll lock                                                                                                                                    
+  Scroll Hijacking (sometimes politely called Scroll Snapping or Viewport Lock)
+  Deliberately taking control of the scroll for a set duration. Used by Apple product pages heavily. Controversial UX pattern — the industry debates it.
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  7. Gradient orbs in HeroSection                                                                                                                              
+  Gradient Blobs (also Aurora Background, Mesh Gradient Orbs, or Bokeh Ambient Lights)                                                                         
+  The radial-gradient + blur + CSS animation combination is called a glassmorphism ambient background or simply gradient blobs. Huge in 2022–2024 design
+  trends.                                                                                                                                                      
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  8. NavBar hide/show on scroll                                                                                                                                
+  Smart Navbar or Scroll-Aware Navigation (technically Hide-on-Scroll Header)                                                                                  
+  The pattern of hiding on scroll-down, showing on scroll-up is called the auto-hide navbar pattern. First widely used by Medium.
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  9. KairosFooter reveal                                                                                                                                       
+  Sticky Footer Reveal (or Scroll-Behind Footer, Layered Scroll Reveal)                                                                                        
+  The main content scrolling over a pinned footer is a variant of the parallax layering technique — Z-axis parallax via z-index stacking rather than transform.
+                                                                                                                                                               
+  ---                                                                                                                                                          
+  10. Framescape / contact anim-fade-up                                                                                                                        
+  Scroll-Triggered Entrance Animation (or Reveal on Scroll)                                                                                                    
+  The IntersectionObserver firing a fade + translateY is the modern standard — formerly done with libraries like AOS (Animate On Scroll) or ScrollMagic.
+                                                                                                                                                          

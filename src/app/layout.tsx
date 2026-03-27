@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 import ScrollReset from "@/components/ScrollReset";
 
@@ -11,6 +11,13 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const fraunces = Fraunces({
+  weight: ["700"],
+  style:  ["normal"],
+  subsets: ["latin"],
+  variable: "--font-fraunces",
 });
 
 const pressStart = Press_Start_2P({
@@ -32,7 +39,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} h-full antialiased dark`}
+      className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} ${fraunces.variable} h-full antialiased dark`}
     >
       <body className="min-h-full flex flex-col">
         <ScrollReset />
