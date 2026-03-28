@@ -15,10 +15,10 @@ export const TIMELINE_OPTIONS = [
 ] as const;
 
 export const BUDGET_OPTIONS = [
-  "Under $5k",
-  "$5k - $15k",
-  "$15k - $30k",
-  "$30k+",
+  "Under ₹5k",
+  "₹5k - ₹15k",
+  "₹15k - ₹30k",
+  "₹30k+",
 ] as const;
 
 export const leadSchema = z.object({
@@ -35,9 +35,7 @@ export const leadSchema = z.object({
   timeline: z.enum(TIMELINE_OPTIONS, {
     message: "Please select a timeline",
   }),
-  businessChallenge: z
-    .string()
-    .min(20, "Please describe your challenge in at least 20 characters"),
+  businessChallenge: z.string().trim(),
   budget: z.enum(BUDGET_OPTIONS, {
     message: "Please select a budget range",
   }),

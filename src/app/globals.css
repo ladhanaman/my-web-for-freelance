@@ -163,6 +163,19 @@
   box-shadow:   0 12px 40px rgba(0,0,0,0.5);
 }
 
+/* ── Gallery page nav links (back / prev / next) ── */
+.gallery-nav-link {
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8c7f74;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+.gallery-nav-link:hover {
+  color: #C07548;
+}
+
 /* ── Card hover ── */
 .card-hover {
   transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.2s ease;

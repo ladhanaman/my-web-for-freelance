@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, type FocusEvent } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -20,6 +20,7 @@ import {
   leadSchema, LeadFormData,
   SERVICE_OPTIONS, TIMELINE_OPTIONS, BUDGET_OPTIONS,
 } from "@/lib/validations";
+import { getServiceFollowUpPrompt } from "@/lib/service-prompts";
 
 const SERVICE_ICONS: Record<string, React.ReactNode> = {
   "Ecommerce Platform":     <Bot size={17} />,
@@ -51,38 +52,136 @@ const errorCls = "text-xs text-red-400 mt-1";
 interface ContactFormProps {
   onSuccess: () => void;
   onCompletedChange?: (count: number) => void;
+  onCatSignalChange?: (signal: OnekoCatFormSignal) => void;
 }
 
-export default function ContactForm({ onSuccess, onCompletedChange }: ContactFormProps) {
+export interface OnekoCatFormSignal {
+  focused: boolean;
+  completed: number;
+  activeField: OnekoCatField;
+  activeServicePromptKey: string | null;
+  activeServicePromptQuestion: string | null;
+  nameText: string;
+  nameValid: boolean;
+  emailValid: boolean;
+  servicesValid: boolean;
+  timelineValid: boolean;
+  budgetValid: boolean;
+  hasBasics: boolean;
+  submitting: boolean;
+  success: boolean;
+  hasError: boolean;
+}
+
+export type OnekoCatField =
+  | "name"
+  | "email"
+  | "services"
+  | "timeline"
+  | "businessChallenge"
+  | "budget"
+  | null;
+
+type SubmitState = "idle" | "submitting" | "success" | "error";
+
+export default function ContactForm({ onSuccess, onCompletedChange, onCatSignalChange }: ContactFormProps) {
   const [submitting,  setSubmitting]  = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [submitState, setSubmitState] = useState<SubmitState>("idle");
+  const [isFormFocused, setIsFormFocused] = useState(false);
+  const [activeField, setActiveField] = useState<OnekoCatField>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const {
-    register, handleSubmit, control, watch,
+    register, handleSubmit, control, watch, setValue, setFocus,
     formState: { errors },
   } = useForm<LeadFormData>({
     resolver: zodResolver(leadSchema),
     defaultValues: { services: [] },
   });
+  const [selectedFollowUpChipId, setSelectedFollowUpChipId] = useState<string | null>(null);
 
   const watchedValues = watch(TRACKED_FIELDS);
   const [nameVal, emailVal, servicesVal, timelineVal, challengeVal, budgetVal] = watchedValues;
+  const nameOk = leadSchema.shape.name.safeParse(nameVal).success;
+  const emailOk = leadSchema.shape.email.safeParse(emailVal).success;
+  const servicesOk = leadSchema.shape.services.safeParse(servicesVal).success;
+  const timelineOk = leadSchema.shape.timeline.safeParse(timelineVal).success;
+  const budgetOk = leadSchema.shape.budget.safeParse(budgetVal).success;
+  const selectedServices = Array.isArray(servicesVal) ? servicesVal : [];
+  const latestSelectedService = selectedServices[selectedServices.length - 1] ?? null;
+  const activeServicePrompt = getServiceFollowUpPrompt(latestSelectedService);
+  const challengeText = typeof challengeVal === "string" ? challengeVal : "";
   const completedCount = [
-    leadSchema.shape.name.safeParse(nameVal).success,
-    leadSchema.shape.email.safeParse(emailVal).success,
-    leadSchema.shape.services.safeParse(servicesVal).success,
-    leadSchema.shape.timeline.safeParse(timelineVal).success,
-    leadSchema.shape.businessChallenge.safeParse(challengeVal).success,
-    leadSchema.shape.budget.safeParse(budgetVal).success,
+    nameOk,
+    emailOk,
+    servicesOk,
+    timelineOk,
+    budgetOk,
   ].filter(Boolean).length;
+
+  useEffect(() => {
+    setSelectedFollowUpChipId(null);
+  }, [latestSelectedService]);
 
   useEffect(() => {
     onCompletedChange?.(completedCount);
   }, [completedCount, onCompletedChange]);
 
+  useEffect(() => {
+    onCatSignalChange?.({
+      focused: isFormFocused,
+      completed: completedCount,
+      activeField,
+      activeServicePromptKey: activeServicePrompt ? latestSelectedService : null,
+      activeServicePromptQuestion: activeServicePrompt?.question ?? null,
+      nameText: typeof nameVal === "string" ? nameVal : "",
+      nameValid: nameOk,
+      emailValid: emailOk,
+      servicesValid: servicesOk,
+      timelineValid: timelineOk,
+      budgetValid: budgetOk,
+      hasBasics: nameOk && emailOk,
+      submitting: submitState === "submitting",
+      success: submitState === "success",
+      hasError: submitState === "error",
+    });
+  }, [
+    budgetOk,
+    completedCount,
+    emailOk,
+    isFormFocused,
+    nameOk,
+    nameVal,
+    onCatSignalChange,
+    servicesOk,
+    submitState,
+    timelineOk,
+    activeField,
+    activeServicePrompt,
+    latestSelectedService,
+  ]);
+
+  const applyFollowUpStarter = (starter: string, chipId: string) => {
+    const trimmedCurrent = challengeText.trim();
+    const nextValue = !trimmedCurrent
+      ? starter
+      : challengeText.includes(starter)
+        ? challengeText
+        : `${challengeText.trimEnd()}\n${starter}`;
+
+    setValue("businessChallenge", nextValue, {
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+    setSelectedFollowUpChipId(chipId);
+    setFocus("businessChallenge");
+  };
+
   const onSubmit = async (data: LeadFormData) => {
     setSubmitting(true);
     setServerError(null);
+    setSubmitState("submitting");
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 10000);
     try {
@@ -93,20 +192,61 @@ export default function ContactForm({ onSuccess, onCompletedChange }: ContactFor
         signal:  controller.signal,
       });
       if (!res.ok) throw new Error("failed");
+      setSubmitState("success");
       onSuccess();
     } catch {
       setServerError("Something went wrong. Please try again or email us directly.");
+      setSubmitState("error");
     } finally {
       clearTimeout(timer);
       setSubmitting(false);
     }
   };
 
+  const resolveActiveField = (element: Element | null): OnekoCatField => {
+    if (!(element instanceof HTMLElement)) return null;
+    const key = (element.getAttribute("name") || element.id || "").trim();
+    switch (key) {
+      case "name":
+      case "email":
+      case "services":
+      case "timeline":
+      case "businessChallenge":
+      case "budget":
+        return key;
+      default:
+        return null;
+    }
+  };
+
+  const handleFocusCapture = (event: FocusEvent<HTMLFormElement>) => {
+    setIsFormFocused(true);
+    setActiveField(resolveActiveField(event.target as Element));
+    if (submitState !== "submitting") {
+      setSubmitState((prev) => (prev === "idle" ? prev : "idle"));
+    }
+  };
+
+  const handleBlurCapture = () => {
+    window.requestAnimationFrame(() => {
+      const formEl = formRef.current;
+      const active = document.activeElement;
+      setIsFormFocused(Boolean(formEl && active && formEl.contains(active)));
+      setActiveField(resolveActiveField(active));
+    });
+  };
+
   /* ── Form ── */
   return (
     <div className="space-y-5">
       <div className="rounded-2xl border border-[#2e2a25] bg-[#1c1916] overflow-hidden">
-        <form onSubmit={handleSubmit(onSubmit)} className="divide-y divide-[#252018]">
+        <form
+          ref={formRef}
+          onSubmit={handleSubmit(onSubmit)}
+          onFocusCapture={handleFocusCapture}
+          onBlurCapture={handleBlurCapture}
+          className="divide-y divide-[#252018]"
+        >
 
           {/* Section 1 — Name, Email, Website */}
           <div className="p-6 sm:p-8 space-y-5">
@@ -198,16 +338,36 @@ export default function ContactForm({ onSuccess, onCompletedChange }: ContactFor
           {/* Section 4 — Business Challenge */}
           <div className="p-6 sm:p-8 space-y-2">
             <Label htmlFor="businessChallenge" className={`${labelCls} block`}>
-              Primary Business Challenge <span className="text-[#C07548]">*</span>
+              Primary Business Challenge{" "}
+              <span className="text-[#5a5048] font-normal text-xs">(optional)</span>
             </Label>
+            {activeServicePrompt ? (
+              <div className="rounded-xl border border-[#C07548]/20 bg-[#17130f] px-4 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-all duration-300">
+                <p className="text-[11px] uppercase tracking-[0.18em] text-[#C07548]/85">
+                  Cat prompt
+                </p>
+                <p className="mt-2 text-sm font-medium text-[#f2ede8]">
+                  {activeServicePrompt.question}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {activeServicePrompt.chips.map((chip) => (
+                    <SelectPill
+                      key={chip.id}
+                      label={chip.label}
+                      selected={selectedFollowUpChipId === chip.id}
+                      onClick={() => applyFollowUpStarter(chip.starter, chip.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <Textarea
               id="businessChallenge"
-              placeholder="Tell us about the biggest challenge you'd like AI to solve..."
+              placeholder="Tell us what you're building, fixing, or exploring..."
               rows={4}
               {...register("businessChallenge")}
               className={`${inputCls} h-auto resize-none leading-relaxed`}
             />
-            {errors.businessChallenge && <p className={errorCls}>{errors.businessChallenge.message}</p>}
           </div>
 
           {/* Section 5 — Budget + Submit */}

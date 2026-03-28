@@ -95,7 +95,7 @@ function CollectionCard({ collection }: { collection: Collection }) {
 export default function Framescape() {
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(false)
-  const hasBeenVisible = useRef(false)
+  const [hasBeenVisible, setHasBeenVisible] = useState(false)
   const hasLocked = useRef(false)
   const [scope, animate] = useAnimate()
 
@@ -108,7 +108,7 @@ export default function Framescape() {
       ([entry]) => {
         if (!entry) return
         const visible = entry.intersectionRatio >= 0.3
-        if (visible) hasBeenVisible.current = true
+        if (visible) setHasBeenVisible(true)
         setIsVisible(visible)
       },
       { threshold: [0, 0.3] }
@@ -161,9 +161,9 @@ export default function Framescape() {
         { duration: 1.1, delay: stagger(0.15), ease: [0.76, 0, 0.36, 1] }
       )
     } else {
-      animate("img", { opacity: 0, y: 24 }, { duration: hasBeenVisible.current ? 0.5 : 0 })
+      animate("img", { opacity: 0, y: 24 }, { duration: hasBeenVisible ? 0.5 : 0 })
     }
-  }, [isVisible, animate])
+  }, [isVisible, animate, hasBeenVisible])
 
   return (
     <section
@@ -200,8 +200,8 @@ export default function Framescape() {
         initial={{ opacity: 0, y: 12 }}
         animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
         transition={{
-          duration: isVisible ? 0.75 : hasBeenVisible.current ? 0.45 : 0,
-          delay: isVisible ? 2.5 : 0,
+          duration: isVisible ? 0.65 : hasBeenVisible ? 0.45 : 0,
+          delay: isVisible ? 2.1 : 0,
           ease: isVisible ? "easeOut" : "easeIn",
         }}
         style={{

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useSyncExternalStore } from "react"
 
 const BREAKPOINTS: Record<string, number> = {
   sm:  640,
@@ -9,15 +9,18 @@ const BREAKPOINTS: Record<string, number> = {
 }
 
 export default function useScreenSize() {
-  const [width, setWidth] = useState(
-    typeof window !== "undefined" ? window.innerWidth : 1024
-  )
+  const width = useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined") {
+        return () => undefined
+      }
 
-  useEffect(() => {
-    const handle = () => setWidth(window.innerWidth)
-    window.addEventListener("resize", handle)
-    return () => window.removeEventListener("resize", handle)
-  }, [])
+      window.addEventListener("resize", onStoreChange)
+      return () => window.removeEventListener("resize", onStoreChange)
+    },
+    () => window.innerWidth,
+    () => 1024
+  )
 
   return {
     width,

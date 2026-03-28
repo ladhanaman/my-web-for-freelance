@@ -1,19 +1,17 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from "react"
-import { InertiaOptions, motion } from "motion/react"
 
 type InitialPosition = {
+  top?: number | string
+  left?: number | string
   x?: number | string
   y?: number | string
-  rotate?: number
+  rotate?: number | string
 }
 
 type DragElementsProps = {
   children: React.ReactNode
-  /** Per-child initial positions applied as Framer Motion style (x/y/rotate).
-   *  Using style instead of a CSS transform on the child keeps the motion.div's
-   *  hit area correctly aligned with the visual position. */
   initialPositions?: InitialPosition[]
   dragElastic?:
     | number
@@ -23,75 +21,221 @@ type DragElementsProps = {
     | { top?: number; left?: number; right?: number; bottom?: number }
     | React.RefObject<Element | null>
   dragMomentum?: boolean
-  dragTransition?: InertiaOptions
+  dragTransition?: unknown
   dragPropagation?: boolean
   selectedOnTop?: boolean
   className?: string
 }
 
+type DragOffset = {
+  x: number
+  y: number
+}
+
+type DragBounds = {
+  minX: number
+  maxX: number
+  minY: number
+  maxY: number
+}
+
+type ActiveDrag = {
+  bounds: DragBounds | null
+  index: number
+  originX: number
+  originY: number
+  startX: number
+  startY: number
+}
+
+const resolveNumericOffset = (value?: number | string): number =>
+  typeof value === "number" ? value : 0
+
+const clamp = (value: number, min: number, max: number): number =>
+  Math.min(max, Math.max(min, value))
+
+const resolveRotate = (value?: number | string): string =>
+  value === undefined ? "" : typeof value === "number" ? `${value}deg` : value
+
 const DragElements: React.FC<DragElementsProps> = ({
   children,
   initialPositions,
-  dragElastic = 0.5,
   dragConstraints,
-  dragMomentum = true,
-  dragTransition = { bounceStiffness: 200, bounceDamping: 300 },
-  dragPropagation = true,
   selectedOnTop = true,
   className,
 }) => {
+  const childCount = React.Children.count(children)
   const constraintsRef = useRef<HTMLDivElement>(null)
-  const [zIndices, setZIndices] = useState<number[]>([])
-  const [isDragging, setIsDragging] = useState(false)
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([])
+  const activeDragRef = useRef<ActiveDrag | null>(null)
 
-  useEffect(() => {
-    setZIndices(
-      Array.from({ length: React.Children.count(children) }, (_, i) => i)
-    )
-  }, [children])
+  const [zIndices, setZIndices] = useState<number[]>(() =>
+    Array.from({ length: childCount }, (_, index) => index)
+  )
+  const [offsets, setOffsets] = useState<DragOffset[]>(() =>
+    Array.from({ length: childCount }, (_, index) => ({
+      x: resolveNumericOffset(initialPositions?.[index]?.x),
+      y: resolveNumericOffset(initialPositions?.[index]?.y),
+    }))
+  )
+  const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
 
   const bringToFront = (index: number) => {
-    if (selectedOnTop) {
-      setZIndices((prev) => {
-        const next = [...prev]
-        const cur = next.indexOf(index)
-        next.splice(cur, 1)
+    if (!selectedOnTop) return
+
+    setZIndices((prev) => {
+      const next = [...prev]
+      const currentIndex = next.indexOf(index)
+
+      if (currentIndex === -1) {
         next.push(index)
         return next
-      })
-    }
+      }
+
+      next.splice(currentIndex, 1)
+      next.push(index)
+      return next
+    })
   }
 
+  const resolveBounds = (
+    index: number,
+    origin: DragOffset
+  ): DragBounds | null => {
+    const element = itemRefs.current[index]
+
+    if (!element) return null
+
+    if (dragConstraints && "current" in dragConstraints) {
+      const constraintElement = dragConstraints.current
+
+      if (!constraintElement) return null
+
+      const itemRect = element.getBoundingClientRect()
+      const constraintRect = constraintElement.getBoundingClientRect()
+
+      return {
+        minX: origin.x + (constraintRect.left - itemRect.left),
+        maxX: origin.x + (constraintRect.right - itemRect.right),
+        minY: origin.y + (constraintRect.top - itemRect.top),
+        maxY: origin.y + (constraintRect.bottom - itemRect.bottom),
+      }
+    }
+
+    if (dragConstraints && typeof dragConstraints === "object") {
+      return {
+        minX: dragConstraints.left ?? Number.NEGATIVE_INFINITY,
+        maxX: dragConstraints.right ?? Number.POSITIVE_INFINITY,
+        minY: dragConstraints.top ?? Number.NEGATIVE_INFINITY,
+        maxY: dragConstraints.bottom ?? Number.POSITIVE_INFINITY,
+      }
+    }
+
+    return null
+  }
+
+  const updateOffset = (index: number, nextOffset: DragOffset) => {
+    setOffsets((prev) => {
+      const next = [...prev]
+      next[index] = nextOffset
+      return next
+    })
+  }
+
+  const handlePointerDown = (
+    index: number,
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    if (event.button !== 0) return
+
+    bringToFront(index)
+
+    const currentOffset = offsets[index] ?? {
+      x: resolveNumericOffset(initialPositions?.[index]?.x),
+      y: resolveNumericOffset(initialPositions?.[index]?.y),
+    }
+
+    activeDragRef.current = {
+      bounds: resolveBounds(index, currentOffset),
+      index,
+      originX: currentOffset.x,
+      originY: currentOffset.y,
+      startX: event.clientX,
+      startY: event.clientY,
+    }
+
+    setDraggingIndex(index)
+    event.preventDefault()
+  }
+
+  useEffect(() => {
+    const handleWindowMouseMove = (event: MouseEvent) => {
+      const activeDrag = activeDragRef.current
+
+      if (!activeDrag) return
+
+      const deltaX = event.clientX - activeDrag.startX
+      const deltaY = event.clientY - activeDrag.startY
+
+      let nextX = activeDrag.originX + deltaX
+      let nextY = activeDrag.originY + deltaY
+
+      if (activeDrag.bounds) {
+        nextX = clamp(nextX, activeDrag.bounds.minX, activeDrag.bounds.maxX)
+        nextY = clamp(nextY, activeDrag.bounds.minY, activeDrag.bounds.maxY)
+      }
+
+      updateOffset(activeDrag.index, { x: nextX, y: nextY })
+    }
+
+    const handleWindowMouseUp = () => {
+      if (!activeDragRef.current) return
+
+      activeDragRef.current = null
+      setDraggingIndex(null)
+    }
+
+    window.addEventListener("mousemove", handleWindowMouseMove)
+    window.addEventListener("mouseup", handleWindowMouseUp)
+
+    return () => {
+      window.removeEventListener("mousemove", handleWindowMouseMove)
+      window.removeEventListener("mouseup", handleWindowMouseUp)
+    }
+  }, [])
+
   return (
-    <div ref={constraintsRef} className={`relative w-full h-full ${className}`}>
+    <div ref={constraintsRef} className={`relative h-full w-full ${className ?? ""}`}>
       {React.Children.map(children, (child, index) => {
         const initPos = initialPositions?.[index]
+        const zIndex = zIndices.includes(index) ? zIndices.indexOf(index) : index
+        const offset = offsets[index] ?? {
+          x: resolveNumericOffset(initPos?.x),
+          y: resolveNumericOffset(initPos?.y),
+        }
+        const rotate = resolveRotate(initPos?.rotate)
+
         return (
-          <motion.div
+          <div
             key={index}
-            drag
-            dragElastic={dragElastic}
-            dragConstraints={dragConstraints || constraintsRef}
-            dragMomentum={dragMomentum}
-            dragTransition={dragTransition}
-            dragPropagation={dragPropagation}
+            ref={(element) => {
+              itemRefs.current[index] = element
+            }}
+            data-dragging={draggingIndex === index ? "true" : "false"}
             style={{
-              x:      initPos?.x,
-              y:      initPos?.y,
-              rotate: initPos?.rotate,
-              zIndex: zIndices.indexOf(index),
-              cursor: isDragging ? "grabbing" : "grab",
+              top: initPos?.top,
+              left: initPos?.left,
+              transform: `translate3d(${offset.x}px, ${offset.y}px, 0)${rotate ? ` rotate(${rotate})` : ""}`,
+              zIndex,
+              cursor: draggingIndex === index ? "grabbing" : "grab",
+              touchAction: "none",
+              userSelect: "none",
             }}
-            onDragStart={() => {
-              bringToFront(index)
-              setIsDragging(true)
-            }}
-            onDragEnd={() => setIsDragging(false)}
-            whileDrag={{ cursor: "grabbing" }}
+            onMouseDown={(event) => handlePointerDown(index, event)}
             className="absolute"
           >
             {child}
-          </motion.div>
+          </div>
         )
       })}
     </div>

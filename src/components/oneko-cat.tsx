@@ -4,12 +4,24 @@ import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
 
+export type OnekoCatMood = "idle" | "talk" | "thinking" | "happy" | "success" | "error";
+
 interface OnekoCatProps {
   className?: string;
+  mood?: OnekoCatMood;
+  message?: string;
+  showMessage?: boolean;
+  onCatClick?: () => void;
+  restToken?: number;
 }
 
 type SpriteSetName =
   | "idle"
+  | "talk"
+  | "thinking"
+  | "happy"
+  | "success"
+  | "error"
   | "tired"
   | "sleeping"
   | "N"
@@ -33,6 +45,14 @@ const NEKO_SPEED = 10;
 
 const SPRITES: Record<SpriteSetName, readonly SpriteFrame[]> = {
   idle: [[-3, -3]],
+  talk: [
+    [-7, -3],
+    [-7, -1],
+  ],
+  thinking: [[0, 0]],
+  happy: [[0, -1]],
+  success: [[-7, 0]],
+  error: [[-6, 0]],
   tired: [[-3, -2]],
   sleeping: [
     [-2, 0],
@@ -75,10 +95,31 @@ const SPRITES: Record<SpriteSetName, readonly SpriteFrame[]> = {
 const clamp = (value: number, min: number, max: number): number =>
   Math.min(Math.max(value, min), max);
 
-export default function OnekoCat({ className }: OnekoCatProps) {
+const DEFAULT_MESSAGE = "Need a build partner?";
+
+export default function OnekoCat({
+  className,
+  mood = "idle",
+  message = DEFAULT_MESSAGE,
+  showMessage = false,
+  onCatClick,
+  restToken = 0,
+}: OnekoCatProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const petRef = useRef<HTMLDivElement>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
+  const bubbleRef = useRef<HTMLDivElement>(null);
+  const moodRef = useRef<OnekoCatMood>(mood);
+  const restUntilRef = useRef(0);
+
+  useEffect(() => {
+    moodRef.current = mood;
+  }, [mood]);
+
+  useEffect(() => {
+    if (restToken <= 0) return;
+    restUntilRef.current = Date.now() + 1600;
+  }, [restToken]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -92,9 +133,9 @@ export default function OnekoCat({ className }: OnekoCatProps) {
 
     const image = new Image();
     image.onerror = () => {
-      console.error("[OnekoCat] Failed to load /oneko-cat.png sprite sheet.");
+      console.error("[OnekoCat] Failed to load /oneko-cat-chat.png sprite sheet.");
     };
-    image.src = "/oneko-cat.png";
+    image.src = "/oneko-cat-chat.png";
 
     const rect = container.getBoundingClientRect();
     const center: Vec2 = {
@@ -120,6 +161,26 @@ export default function OnekoCat({ className }: OnekoCatProps) {
     const updatePosition = (): void => {
       pet.style.left = `${Math.round(neko.x - HALF_SIZE)}px`;
       pet.style.top = `${Math.round(neko.y - HALF_SIZE)}px`;
+
+      const bubble = bubbleRef.current;
+      if (!bubble) return;
+
+      const margin = 8;
+      const bubbleW = bubble.offsetWidth;
+      const bubbleH = bubble.offsetHeight;
+      const cx = clamp(
+        Math.round(neko.x),
+        Math.round(bubbleW / 2 + margin),
+        Math.round(container.clientWidth - bubbleW / 2 - margin)
+      );
+      const cy = clamp(
+        Math.round(neko.y - HALF_SIZE - 10),
+        Math.round(bubbleH + margin),
+        Math.round(container.clientHeight - margin)
+      );
+
+      bubble.style.left = `${cx}px`;
+      bubble.style.top = `${cy}px`;
     };
 
     const resetIdleAnimation = (): void => {
@@ -152,13 +213,31 @@ export default function OnekoCat({ className }: OnekoCatProps) {
     };
 
     const runFrame = (): void => {
+      if (Date.now() < restUntilRef.current) {
+        idleAnimation = null;
+        idleAnimationFrame = 0;
+        idleTime = 0;
+        setSprite("idle", 0);
+        updatePosition();
+        return;
+      }
+
       frameCount += 1;
       const diffX = neko.x - mouse.x;
       const diffY = neko.y - mouse.y;
       const distance = Math.sqrt(diffX ** 2 + diffY ** 2);
+      const activeMood = moodRef.current;
 
       if (distance < NEKO_SPEED || distance < 48) {
+        if (activeMood !== "idle") {
+          idleTime = 0;
+          resetIdleAnimation();
+          setSprite(activeMood, frameCount);
+          updatePosition();
+          return;
+        }
         idle();
+        updatePosition();
         return;
       }
 
@@ -255,19 +334,39 @@ export default function OnekoCat({ className }: OnekoCatProps) {
       )}
     >
       <p
-        className="pointer-events-none absolute left-1/2 top-6 z-10 -translate-x-1/2 origin-top scale-y-180 whitespace-nowrap text-[16px] leading-none text-[#f2ede8]"
+        className="pointer-events-none absolute left-1/2 top-4 z-10 -translate-x-1/2 origin-top scale-y-125 whitespace-nowrap text-center text-[clamp(9px,2vw,14px)] leading-none text-[#f2ede8] sm:top-5 lg:top-6"
         style={{ fontFamily: "var(--font-press-start), monospace" }}
       >
         Code. Claw. Conquer.
       </p>
+      {showMessage && message ? (
+        <div
+          ref={bubbleRef}
+          className="pointer-events-none absolute z-10 w-max max-w-[calc(100%-1rem)] -translate-x-1/2 -translate-y-full"
+        >
+          <div className="relative max-w-full rounded-lg border border-[#C07548]/35 bg-[#17130f]/95 px-3 py-2.5 text-center text-[11px] leading-[1.4] tracking-[0.01em] text-[#f2ede8] shadow-[0_6px_16px_rgba(0,0,0,0.35)] break-words whitespace-normal sm:px-3.5 sm:py-3 sm:text-[12px] lg:text-[13px]">
+            {message}
+            <span className="absolute left-1/2 top-full h-2.5 w-2.5 -translate-x-1/2 -translate-y-[2px] rotate-45 border-b border-r border-[#C07548]/35 bg-[#17130f]/95" />
+          </div>
+        </div>
+      ) : null}
       <div
         ref={petRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-0 h-[30px] w-[30px] [transform:scale(1.5)] [transform-origin:top_left]"
+        role="button"
+        aria-label="Oneko Cat"
+        tabIndex={0}
+        onClick={onCatClick}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            onCatClick?.();
+          }
+        }}
+        className="absolute left-0 top-0 z-20 h-[30px] w-[30px] cursor-pointer [transform:scale(1.5)] [transform-origin:top_left]"
       >
         <div
           ref={bodyRef}
-          className="h-full w-full bg-[url('/oneko-cat.png')] bg-no-repeat [background-size:256px_128px] [image-rendering:pixelated] [image-rendering:crisp-edges] [filter:none]"
+          className="h-full w-full bg-[url('/oneko-cat-chat.png')] bg-no-repeat [background-size:256px_128px] [image-rendering:pixelated] [image-rendering:crisp-edges] [filter:none]"
         />
       </div>
     </div>
