@@ -6,6 +6,7 @@ import Link from "next/link"
 import type { Collection } from "@/lib/collections"
 import { GALLERY_BASE_PATH } from "@/lib/collections"
 import DragElements from "@/components/fancy/blocks/drag-elements"
+import GridBackground from "@/components/GridBackground"
 
 interface GalleryClientProps {
   collection: Collection
@@ -32,36 +33,39 @@ const seededValue = (slug: string, index: number, channel: string): number =>
 const buildPilePositions = (slug: string, count: number) =>
   Array.from({ length: count }, (_, i) => ({
     // Center the pile around ~28% from left, vertically middle of viewport
-    top:  `calc(50vh - 110px + ${Math.round((seededValue(slug, i, "y") - 0.5) * 22)}px)`,
-    left: `calc(24vw - 88px + ${Math.round((seededValue(slug, i, "x") - 0.5) * 18)}px)`,
+    top: `calc(50vh - 135px + ${Math.round((seededValue(slug, i, "y") - 0.5) * 22)}px)`,
+    left: `calc(24vw - 133px + ${Math.round((seededValue(slug, i, "x") - 0.5) * 18)}px)`,
     // Wide rotation spread = you can see each card peeking out
     rotate: (seededValue(slug, i, "r") - 0.5) * 34,
   }))
 
 export default function GalleryClient({ collection, prev, next }: GalleryClientProps) {
-  // Fall back to coverPhoto if photos array is empty
-  const photos =
-    collection.photos.length > 0
-      ? collection.photos
-      : collection.coverPhoto
-        ? [collection.coverPhoto]
-        : []
+  // Extract number from filename for sorting
+  const extractNum = (str: string) => {
+    const match = str.match(/(\d+)\D*$/)
+    return match ? parseInt(match[1], 10) : 0
+  }
+
+  // Remove the coverPhoto from the original list if it exists to avoid duplicates
+  const otherPhotos = collection.photos.filter((p) => p !== collection.coverPhoto)
+
+  // Sort descending so lower values are at the end (visually on top of the stack)
+  otherPhotos.sort((a, b) => extractNum(b) - extractNum(a))
+
+  // Append coverPhoto at the end so it renders visually on top of all other photos
+  const photos = collection.coverPhoto
+    ? [...otherPhotos, collection.coverPhoto]
+    : otherPhotos
 
   const positions = buildPilePositions(collection.slug, Math.max(photos.length, 1))
 
   return (
     <section
       className="relative min-h-dvh overflow-hidden"
-      style={{
-        // ← Same background as before
-        background: "#fdf8f3",
-        backgroundImage: [
-          "linear-gradient(rgba(192,117,72,0.08) 1px, transparent 1px)",
-          "linear-gradient(90deg, rgba(192,117,72,0.08) 1px, transparent 1px)",
-        ].join(", "),
-        backgroundSize: "64px 64px",
-      }}
+      style={{ background: "#100e0c" }}
     >
+      <GridBackground alwaysActive />
+
       {/* ── Back breadcrumb ─────────────────────────────────────── */}
       <Link
         href="/#framescape"
@@ -109,33 +113,24 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
               // Polaroid card — identical styling to the original
               <div
                 key={`${collection.slug}-${i}`}
-                className="flex items-start justify-center rounded-[2px] bg-white shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
+                className="flex items-start justify-center rounded-[2px] shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
                 style={{
-                  width: "clamp(140px, 17vw, 178px)",
-                  // total height = image area + bottom label gap
-                  paddingTop: "13px",
-                  paddingLeft: "13px",
-                  paddingRight: "13px",
-                  paddingBottom: "28px",
+                  width: i === photos.length - 1
+                    ? "clamp(250px, 30vw, 315px)"
+                    : "clamp(245px, 28vw, 285px)",
+                  padding: "0",
                 }}
               >
                 <div
                   className="relative overflow-hidden bg-[#f4f1ec]"
-                  style={{
-                    width: "100%",
-                    // image area = clamp(130px, …)
-                    height: "clamp(130px, 20vw, 170px)",
-                  }}
+                  style={{ width: "100%" }}
                 >
-                  <Image
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={src}
-                    fill
                     alt={`${collection.name} photo ${i + 1}`}
-                    sizes="(max-width: 767px) 140px, 178px"
-                    className="pointer-events-none object-cover select-none"
+                    className="w-full h-auto pointer-events-none select-none block"
                     draggable={false}
-                    // Topmost card (last in array) gets priority
-                    priority={i === photos.length - 1}
                   />
                 </div>
               </div>
@@ -183,7 +178,7 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
             }}
           >
             all your{" "}
-            <span style={{ fontWeight: 700, color: "#2c2925" }}>memories.</span>
+            <span style={{ fontWeight: 700, color: "#f2ede8" }}>memories.</span>
           </h1>
 
           {/* Collection subtitle — was unused before, now surfaced */}

@@ -14,24 +14,23 @@ import {
 // ── Layout slots for collection cards — 9 total
 // top/left are percentage strings relative to the section
 // depth controls parallax intensity (higher = moves more)
-// All cards are 4:3 — height ≈ 75% of width
 const SLOTS = [
   // Top-left
   { top: "10%", left: "12%", rotate: "-2deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
-  { top: "28%", left: "28%", rotate: "2deg",  depth: 1.15, width: "clamp(100px, 15vw, 260px)" },
+  { top: "26%", left: "29%", rotate: "2deg", depth: 1.15, width: "clamp(100px, 15vw, 260px)" },
   // Top-center
-  { top: "8%",  left: "46%", rotate: "-1deg", depth: 0.95, width: "clamp(100px, 15vw, 260px)" },
+  { top: "8%", left: "46%", rotate: "-1deg", depth: 0.95, width: "clamp(150px, 23vw,300px)" },
   // Top-right
-  { top: "10%", left: "66%", rotate: "1deg",  depth: 1.2,  width: "clamp(100px, 15vw, 260px)" },
-  { top: "28%", left: "80%", rotate: "-2deg", depth: 0.9,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "10%", left: "67%", rotate: "1deg", depth: 1.2, width: "clamp(130px, 22vw, 290px)" },
+  { top: "28%", left: "80%", rotate: "-2deg", depth: 0.9, width: "clamp(100px, 15vw, 260px)" },
   // Mid-left
-  { top: "50%", left: "14%", rotate: "0deg",  depth: 1.1,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "50%", left: "12%", rotate: "0deg", depth: 1.1, width: "clamp(130px, 22vw, 290px)" },
   // Mid-right
-  { top: "50%", left: "76%", rotate: "-1deg", depth: 1.05, width: "clamp(100px, 15vw, 260px)" },
+  { top: "58%", left: "76%", rotate: "-1deg", depth: 1.05, width: "clamp(130px, 22vw, 290px)" },
   // Bottom-left
-  { top: "70%", left: "26%", rotate: "1deg",  depth: 1.0,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "71%", left: "26%", rotate: "1deg", depth: 1.0, width: "clamp(140px, 23vw, 300px)" },
   // Bottom-right
-  { top: "70%", left: "64%", rotate: "-1deg", depth: 1.1,  width: "clamp(100px, 15vw, 260px)" },
+  { top: "71%", left: "60%", rotate: "-1deg", depth: 1.1, width: "clamp(130px, 22vw, 290px)" },
 ] as const
 
 function CollectionCard({ collection }: { collection: Collection }) {
@@ -53,7 +52,7 @@ function CollectionCard({ collection }: { collection: Collection }) {
         style={{
           position: "relative",
           width: "100%",
-          aspectRatio: "4 / 3",
+          aspectRatio: collection.coverPhoto ? "auto" : "4 / 3",
           background: "transparent",
           overflow: "hidden",
         }}
@@ -63,7 +62,7 @@ function CollectionCard({ collection }: { collection: Collection }) {
             src={collection.coverPhoto}
             alt={collection.name}
             draggable={false}
-            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", opacity: 0 }}
+            style={{ width: "100%", height: "auto", display: "block", opacity: 0 }}
             loading="lazy"
             onError={(e) => {
               const img = e.currentTarget
