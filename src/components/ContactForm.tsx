@@ -111,6 +111,9 @@ export default function ContactForm({ onSuccess, onCompletedChange, onCatSignalC
   const selectedServices = Array.isArray(servicesVal) ? servicesVal : [];
   const latestSelectedService = selectedServices[selectedServices.length - 1] ?? null;
   const activeServicePrompt = getServiceFollowUpPrompt(latestSelectedService);
+  const activePrompts = selectedServices
+    .map((s) => getServiceFollowUpPrompt(s))
+    .filter((p): p is NonNullable<typeof p> => p !== null);
   const challengeText = typeof challengeVal === "string" ? challengeVal : "";
   const completedCount = [
     nameOk,
@@ -341,24 +344,25 @@ export default function ContactForm({ onSuccess, onCompletedChange, onCatSignalC
               Primary Business Challenge{" "}
               <span className="text-[#5a5048] font-normal text-xs">(optional)</span>
             </Label>
-            {activeServicePrompt ? (
-              <div className="rounded-xl border border-[#C07548]/20 bg-[#17130f] px-4 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-all duration-300">
-                <p className="text-[11px] uppercase tracking-[0.18em] text-[#C07548]/85">
-                  Cat prompt
-                </p>
-                <p className="mt-2 text-sm font-medium text-[#f2ede8]">
-                  {activeServicePrompt.question}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {activeServicePrompt.chips.map((chip) => (
-                    <SelectPill
-                      key={chip.id}
-                      label={chip.label}
-                      selected={selectedFollowUpChipId === chip.id}
-                      onClick={() => applyFollowUpStarter(chip.starter, chip.id)}
-                    />
-                  ))}
-                </div>
+            {activePrompts.length > 0 ? (
+              <div className="space-y-4">
+                {activePrompts.map((prompt) => (
+                  <div key={prompt.question} className="rounded-xl border border-[#C07548]/20 bg-[#17130f] px-4 py-4 shadow-[0_8px_24px_rgba(0,0,0,0.18)] transition-all duration-300">
+                    <p className="text-sm font-medium text-[#f2ede8]">
+                      {prompt.question}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {prompt.chips.map((chip) => (
+                        <SelectPill
+                          key={chip.id}
+                          label={chip.label}
+                          selected={selectedFollowUpChipId === chip.id}
+                          onClick={() => applyFollowUpStarter(chip.starter, chip.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : null}
             <Textarea

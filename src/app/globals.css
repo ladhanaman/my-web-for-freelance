@@ -202,8 +202,8 @@
   50%       { opacity: 1;    transform: scaleY(1);   }
 }
 .scroll-line {
-  width: 1px;
-  height: 36px;
+  width: 2px;
+  height: 48px;
   background: linear-gradient(to bottom, #C07548, transparent);
   animation: scrollPulse 2s ease-in-out infinite;
   transform-origin: top;

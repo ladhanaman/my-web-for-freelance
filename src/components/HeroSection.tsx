@@ -309,7 +309,7 @@ export default function HeroSection() {
       >
         <span
           style={{
-            fontSize: "0.65rem",
+            fontSize: "0.85rem",
             letterSpacing: "0.22em",
             textTransform: "uppercase",
             color: "#5a5048",
