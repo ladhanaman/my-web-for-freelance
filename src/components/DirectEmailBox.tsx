@@ -21,10 +21,7 @@ export default function DirectEmailBox() {
 
   return (
     <div className="rounded-2xl border border-[#2e2a25] bg-[#1c1916] p-5 card-hover relative overflow-hidden">
-      {/* Accent left strip */}
-      <div className="absolute left-0 top-3 bottom-3 w-[3px] rounded-r-full bg-[#C07548]" />
-
-      <div className="pl-4 space-y-3">
+      <div className="space-y-3">
         {/* Heading */}
         <div className="flex items-center gap-2">
           <Mail size={14} className="text-[#C07548] shrink-0" />

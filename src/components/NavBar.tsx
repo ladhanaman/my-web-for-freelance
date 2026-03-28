@@ -7,7 +7,7 @@ const SECTIONS = [
   { id: SECTION_IDS.hero,        label: "Home"             },
   { id: SECTION_IDS.gun,         label: "Gun"              },
   { id: SECTION_IDS.photography, label: PAGE_NAMES.photography },
-  { id: SECTION_IDS.contact,     label: "Contact"          },
+  { id: SECTION_IDS.onekoCat,    label: "Oneko-Cat"        },
 ] as const
 
 type SectionId = (typeof SECTIONS)[number]["id"]

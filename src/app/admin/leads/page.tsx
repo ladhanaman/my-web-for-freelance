@@ -105,12 +105,6 @@ export default async function AdminLeadsPage({ searchParams }: AdminLeadsPagePro
                 >
                   Overview
                 </Link>
-                <Link
-                  href="/admin/catalogs"
-                  className="inline-flex h-9 items-center rounded-lg border border-[#2e2a25] px-3 text-xs uppercase tracking-[0.1em] text-[#c8beb4] transition-colors hover:text-[#f2ede8]"
-                >
-                  Catalogs
-                </Link>
               </div>
             </div>
 

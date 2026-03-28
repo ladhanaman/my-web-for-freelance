@@ -4,14 +4,6 @@ import AdminSignOutButton from "@/components/admin/AdminSignOutButton";
 
 const ADMIN_SECTIONS = [
   {
-    title: "Catalog Uploads",
-    description:
-      "Manage the 9 photography catalogs, upload JPEG/PNG files, choose cover images, and curate catalog metadata.",
-    href: "/admin/catalogs",
-    accent: "rgba(192,117,72,0.26)",
-    statLabel: "Primary",
-  },
-  {
     title: "Leads Dashboard",
     description: "Read-only view of contact submissions captured from your live website forms.",
     href: "/admin/leads",
@@ -42,7 +34,7 @@ export default function AdminOverviewPage() {
                 Dashboard Overview
               </h1>
               <p className="mt-2 text-sm text-[#8c7f74] sm:text-base">
-                Choose a workspace to manage catalogs or review incoming leads.
+                Leads monitoring is currently enabled for admin.
               </p>
             </div>
 
@@ -50,7 +42,7 @@ export default function AdminOverviewPage() {
           </div>
         </header>
 
-        <section className="grid gap-4 md:grid-cols-2">
+        <section className="grid gap-4 md:grid-cols-1">
           {ADMIN_SECTIONS.map((section) => (
             <Link
               key={section.href}

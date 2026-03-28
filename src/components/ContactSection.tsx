@@ -5,6 +5,7 @@ import { CircleDot, CheckCircle2 } from "lucide-react";
 import ContactForm    from "@/components/ContactForm";
 import DirectEmailBox from "@/components/DirectEmailBox";
 import ProgressTracker from "@/components/ProgressTracker";
+import OnekoCat from "@/components/oneko-cat";
 
 const WHAT_TO_EXPECT = [
   "Free 30-minute consultation",
@@ -54,7 +55,7 @@ export default function ContactSection() {
 
       {/* ── LEFT COLUMN ── */}
       <aside
-        className="flex flex-col gap-5 anim-slide-left"
+        className="flex h-full flex-col gap-5 anim-slide-left"
         style={{ animationDelay: "180ms" }}
       >
         {/* Progress tracker */}
@@ -83,6 +84,9 @@ export default function ContactSection() {
 
         {/* Email card */}
         <DirectEmailBox />
+
+        {/* Oneko card */}
+        <OnekoCat className="min-h-[270px] lg:flex-1" />
       </aside>
 
       {/* ── RIGHT COLUMN ── */}

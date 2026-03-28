@@ -24,7 +24,11 @@
       "Bash(node:*)",
       "Bash(curl -s http://localhost:3000)",
       "Bash(find /Users/naman/Desktop/Projects/my-web -name *framescape* -o -name *Framescape*)",
-      "Bash(find /Users/naman/Desktop/Projects/my-web/public -name *.woff* -o -name *.ttf* -o -name *.otf*)"
+      "Bash(find /Users/naman/Desktop/Projects/my-web/public -name *.woff* -o -name *.ttf* -o -name *.otf*)",
+      "Bash(curl -s --connect-timeout 5 \"https://ep-sparkling-snow-a19zch4u-pooler.ap-southeast-1.aws.neon.tech\")",
+      "Bash(npm install:*)",
+      "Bash(npm list:*)",
+      "Bash(npm view:*)"
     ]
   }
 }

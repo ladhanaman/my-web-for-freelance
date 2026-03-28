@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Oneko Cat Demo</title>
+    <style>
+      body {
+        min-height: 200vh;
+        margin: 0;
+        background: radial-gradient(circle at 20% 20%, #1a2238 0%, #0d1117 55%, #070a0f 100%);
+        cursor: crosshair;
+        color: #e9edf5;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      .note {
+        padding: 16px;
+        font-size: 12px;
+        opacity: 0.95;
+        white-space: pre-line;
+      }
+
+      /* oneko element is injected by /oneko.js */
+      #oneko {
+        transform: scale(2);
+        transform-origin: top left;
+        filter: brightness(1.45) contrast(1.35) drop-shadow(0 0 3px rgba(255, 255, 255, 0.7));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="note" id="status">loading oneko...</div>
+    <script>
+      const statusEl = document.getElementById("status");
+      const setStatus = (message) => {
+        if (statusEl) statusEl.textContent = message;
+      };
+
+      window.addEventListener("error", (event) => {
+        if (String(event.message || "").includes("oneko")) {
+          console.error("[OnekoDemo] Failed to initialize oneko.", event.error || event.message);
+          setStatus("oneko script error. Check DevTools console.");
+        }
+      });
+
+      window.addEventListener("load", () => {
+        window.setTimeout(() => {
+          if (!document.getElementById("oneko")) {
+            console.error("[OnekoDemo] #oneko not found. Check ./oneko.js and ./oneko.gif paths.");
+            setStatus("oneko not found.\nIf opened as file://, keep oneko.js + oneko.gif in same folder.");
+          } else {
+            setStatus("oneko active: move your cursor");
+          }
+        }, 250);
+      });
+    </script>
+    <script src="./oneko.js" data-cat="./oneko.gif" data-persist-position="false"></script>
+  </body>
+</html>

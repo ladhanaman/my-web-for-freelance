@@ -53,7 +53,7 @@ export default function Home() {
 
         {/* ── Contact form section ── */}
         <section
-          id={SECTION_IDS.contact}
+          id={SECTION_IDS.onekoCat}
           className="relative z-10 mx-auto w-[94%] sm:w-[85%] lg:w-[75%] xl:w-[70%] 2xl:w-[65%] max-w-[1400px] py-12 sm:py-16 lg:py-20"
         >
           <header className="mb-12 text-center anim-fade-up" style={{ animationDelay: "0ms" }}>

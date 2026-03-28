@@ -4,7 +4,7 @@ export const SECTION_IDS = {
   hero:        "home",
   gun:         "work",
   photography: "framescape",
-  contact:     "contact",
+  onekoCat:    "oneko-cat",
 } as const
 
 // ── Human-readable page / section names
