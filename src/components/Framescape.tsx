@@ -1,9 +1,16 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
-import { motion, stagger, useAnimate } from "motion/react"
+import {
+  type PointerEvent as ReactPointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
+import { motion, stagger, useAnimate, useMotionValue } from "motion/react"
 import Link from "next/link"
+
 import Floating, { FloatingElement } from "@/components/fancy/image/parallax-floating"
+import { useFinePointer } from "@/hooks/use-fine-pointer"
 import {
   COLLECTIONS,
   GALLERY_BASE_PATH,
@@ -33,19 +40,117 @@ const SLOTS = [
   { top: "71%", left: "60%", rotate: "-1deg", depth: 1.1, width: "clamp(130px, 22vw, 290px)" },
 ] as const
 
-function CollectionCard({ collection }: { collection: Collection }) {
+const HOVER_GLYPH = "[+]"
+const GLYPH_FALLBACK_WIDTH = 43
+const GLYPH_FALLBACK_HEIGHT = 29
+const GLYPH_SAFE_INSET = 10
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max)
+}
+
+interface CollectionCardProps {
+  collection: Collection
+  supportsFineHover: boolean
+  isActive: boolean
+  onHoverChange: (slug: string | null) => void
+}
+
+function CollectionCard({
+  collection,
+  supportsFineHover,
+  isActive,
+  onHoverChange,
+}: CollectionCardProps) {
+  const [isHovered, setIsHovered] = useState(false)
+  const glyphRef = useRef<HTMLSpanElement>(null)
+
+  const glyphX = useMotionValue(0)
+  const glyphY = useMotionValue(0)
+
+  const setMotionValue = (
+    motionValue: { set: (value: number) => void; jump: (value: number) => void },
+    value: number,
+    snap: boolean
+  ) => {
+    if (snap) {
+      motionValue.jump(value)
+      return
+    }
+
+    motionValue.set(value)
+  }
+
+  const updateHoverTargets = (
+    event: ReactPointerEvent<HTMLAnchorElement>,
+    { snap = false }: { snap?: boolean } = {}
+  ) => {
+    const bounds = event.currentTarget.getBoundingClientRect()
+    const localX = clamp(event.clientX - bounds.left, 0, bounds.width)
+    const localY = clamp(event.clientY - bounds.top, 0, bounds.height)
+    const glyphBounds = glyphRef.current?.getBoundingClientRect()
+    const glyphWidth = glyphBounds?.width ?? GLYPH_FALLBACK_WIDTH
+    const glyphHeight = glyphBounds?.height ?? GLYPH_FALLBACK_HEIGHT
+
+    const nextGlyphX = clamp(
+      localX - glyphWidth / 2,
+      GLYPH_SAFE_INSET,
+      Math.max(GLYPH_SAFE_INSET, bounds.width - glyphWidth - GLYPH_SAFE_INSET)
+    )
+    const nextGlyphY = clamp(
+      localY - glyphHeight / 2,
+      GLYPH_SAFE_INSET,
+      Math.max(GLYPH_SAFE_INSET, bounds.height - glyphHeight - GLYPH_SAFE_INSET)
+    )
+
+    setMotionValue(glyphX, nextGlyphX, snap)
+    setMotionValue(glyphY, nextGlyphY, snap)
+  }
+
+  const handlePointerEnter = (event: ReactPointerEvent<HTMLAnchorElement>) => {
+    if (!supportsFineHover || event.pointerType !== "mouse") return
+
+    updateHoverTargets(event, { snap: true })
+    setIsHovered(true)
+    onHoverChange(collection.slug)
+  }
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLAnchorElement>) => {
+    if (!supportsFineHover || event.pointerType !== "mouse") return
+
+    updateHoverTargets(event)
+
+    if (!isHovered) {
+      setIsHovered(true)
+      onHoverChange(collection.slug)
+    }
+  }
+
+  const handlePointerLeave = () => {
+    if (!supportsFineHover) return
+
+    setIsHovered(false)
+    onHoverChange(null)
+  }
+
   return (
     <Link
       href={`${GALLERY_BASE_PATH}/${collection.slug}`}
       className="collection-card"
+      onPointerEnter={handlePointerEnter}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       style={{
         display: "block",
+        position: "relative",
         background: "transparent",
         border: "none",
         borderRadius: 0,
         overflow: "hidden",
         textDecoration: "none",
         userSelect: "none",
+        cursor: supportsFineHover && isHovered ? "none" : "pointer",
+        boxShadow: isActive ? "0 16px 38px rgba(0, 0, 0, 0.35)" : "none",
       }}
     >
       <div
@@ -72,6 +177,7 @@ function CollectionCard({ collection }: { collection: Collection }) {
             }}
           />
         )}
+
         {/* Placeholder — shown when no image is found */}
         <div
           aria-hidden
@@ -86,6 +192,45 @@ function CollectionCard({ collection }: { collection: Collection }) {
         >
           <span style={{ color: "rgba(192,117,72,0.25)", fontSize: "2rem" }}>✦</span>
         </div>
+
+        {supportsFineHover && (
+          <>
+            <motion.div
+              aria-hidden
+              animate={{
+                opacity: isHovered ? 1 : 0,
+                scale: isHovered ? 1 : 0.92,
+              }}
+              transition={{ duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                x: glyphX,
+                y: glyphY,
+                pointerEvents: "none",
+                zIndex: 5,
+                transformOrigin: "center center",
+              }}
+            >
+              <span
+                ref={glyphRef}
+                style={{
+                  display: "inline-block",
+                  color: "#CD845A",
+                  fontFamily: "var(--font-geist-mono), monospace",
+                  fontSize: "1.27rem",
+                  fontWeight: 800,
+                  lineHeight: 1,
+                  letterSpacing: "-0.04em",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {HOVER_GLYPH}
+              </span>
+            </motion.div>
+          </>
+        )}
       </div>
     </Link>
   )
@@ -95,8 +240,10 @@ export default function Framescape() {
   const sectionRef = useRef<HTMLElement>(null)
   const [isVisible, setIsVisible] = useState(false)
   const [hasBeenVisible, setHasBeenVisible] = useState(false)
+  const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const hasLocked = useRef(false)
   const [scope, animate] = useAnimate()
+  const supportsFineHover = useFinePointer()
 
   // ── 30 % visibility → trigger card animation (re-fires on every entry) ──
   useEffect(() => {
@@ -179,14 +326,26 @@ export default function Framescape() {
         <Floating sensitivity={-1} easingFactor={0.1} className="z-[4]">
           {COLLECTIONS.slice(0, SLOTS.length).map((collection, i) => {
             const slot = SLOTS[i % SLOTS.length]
+            const isActive = supportsFineHover && activeSlug === collection.slug
+
             return (
               <FloatingElement
                 key={collection.slug}
                 depth={slot.depth}
-                style={{ top: slot.top, left: slot.left, width: slot.width }}
+                style={{
+                  top: slot.top,
+                  left: slot.left,
+                  width: slot.width,
+                  zIndex: isActive ? 8 : 4,
+                }}
               >
                 <div style={{ transform: `rotate(${slot.rotate})` }}>
-                  <CollectionCard collection={collection} />
+                  <CollectionCard
+                    collection={collection}
+                    supportsFineHover={supportsFineHover}
+                    isActive={isActive}
+                    onHoverChange={setActiveSlug}
+                  />
                 </div>
               </FloatingElement>
             )

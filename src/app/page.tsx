@@ -1,15 +1,31 @@
-import ContactSection  from "@/components/ContactSection";
-import Framescape       from "@/components/Framescape";
-import GridBackground   from "@/components/GridBackground";
-import GunHeroClient    from "@/components/GunHeroClient";
-import HeroSection      from "@/components/HeroSection";
-import KairosFooter     from "@/components/KairosFooter";
-import NavBar           from "@/components/NavBar";
-import { SECTION_IDS }  from "@/lib/collections";
+import ContactSection     from "@/components/ContactSection";
+import Framescape          from "@/components/Framescape";
+import GridBackground      from "@/components/GridBackground";
+import GunHeroClient       from "@/components/GunHeroClient";
+import HeroSection         from "@/components/HeroSection";
+import KairosFooter        from "@/components/KairosFooter";
+import LandingPageWrapper  from "@/components/LandingPageWrapper";
+import NavBar              from "@/components/NavBar";
+import { SECTION_IDS }    from "@/lib/collections";
 
 export default function Home() {
   return (
     <>
+      {/* ── Black placeholder — server-rendered instantly, hides home until LandingPage mounts ── */}
+      <div
+        id="landing-placeholder"
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 499,
+          background: '#000',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* ── Landing splash — fixed overlay, exits on "Open" click ── */}
+      <LandingPageWrapper />
+
       {/*
        * background: "#100e0c" blocks the sticky footer (z-index 0) from
        * bleeding through the transparent sections while main is in view.
@@ -71,11 +87,10 @@ export default function Home() {
               letterSpacing: "-0.04em",
               color: "#f2ede8",
             }}>
-              Let&apos;s Talk About Your Project
+              Let&apos;s Build What Matters
             </h1>
             <p className="mt-4 text-base text-[#8c7f74] sm:text-lg max-w-lg mx-auto leading-relaxed">
-              Tell us what you&apos;re building and we&apos;ll show you how AI can
-              accelerate it.
+              Bring the ambition. I&apos;ll handle the bottlenecks.
             </p>
           </header>
 

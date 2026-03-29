@@ -155,12 +155,11 @@
 
 /* ── Framescape collection card hover ── */
 .collection-card {
-  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+  outline: none;
+  transition: box-shadow 0.25s ease, filter 0.25s ease;
 }
-.collection-card:hover {
-  transform:    scale(1.04);
-  border-color: rgba(192,117,72,0.38);
-  box-shadow:   0 12px 40px rgba(0,0,0,0.5);
+.collection-card:focus-visible {
+  box-shadow: 0 0 0 1px rgba(192,117,72,0.44), 0 16px 40px rgba(0,0,0,0.42);
 }
 
 /* ── Gallery page nav links (back / prev / next) ── */
@@ -225,6 +224,57 @@
 .gun-cta:hover {
   transform: scale(1.04);
   box-shadow: 0 6px 32px rgba(192,117,72,0.6);
+}
+
+/* ── Landing page ── */
+@keyframes landingPulseRing {
+  0%   { transform: translate(-50%, -50%) scale(1);    opacity: 0.55; }
+  80%  { transform: translate(-50%, -50%) scale(1.65); opacity: 0;    }
+  100% { transform: translate(-50%, -50%) scale(1.65); opacity: 0;    }
+}
+
+.landing-pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  border: 1px solid rgba(192, 117, 72, 0.5);
+  transform: translate(-50%, -50%) scale(1);
+  animation: landingPulseRing 2.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+}
+
+.landing-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.85rem 2.2rem;
+  border-radius: 999px;
+  border: 1px solid rgba(192, 117, 72, 0.35);
+  background: rgba(192, 117, 72, 0.08);
+  backdrop-filter: blur(12px);
+  color: #f2ede8;
+  font-family: var(--font-geist-sans), sans-serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.18s ease;
+}
+.landing-btn:hover {
+  border-color: rgba(192, 117, 72, 0.75);
+  background: rgba(192, 117, 72, 0.15);
+  box-shadow: 0 0 28px rgba(192, 117, 72, 0.28), 0 0 60px rgba(192, 117, 72, 0.1);
+  transform: scale(1.04);
+}
+.landing-btn:active {
+  transform: scale(0.98);
 }
 
 /* ── Base ── */
