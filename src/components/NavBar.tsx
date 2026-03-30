@@ -21,10 +21,7 @@ export default function NavBar() {
   useLayoutEffect(() => {
     window.history.scrollRestoration = "manual"
 
-    const isReload =
-      performance?.getEntriesByType?.('navigation')?.[0]?.type === 'reload'
-
-    if (isReload || !window.location.hash) {
+    if (!window.location.hash) {
       window.scrollTo(0, 0)
     }
   }, [])

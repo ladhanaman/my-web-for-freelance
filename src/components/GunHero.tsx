@@ -16,7 +16,19 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useGLTF, Environment } from "@react-three/drei"
 import { RGBELoader } from "three-stdlib"
 import * as THREE from "three"
+import { setConsoleFunction } from "three"
 import { resolveHdrAsset } from "@/lib/hdr-cache"
+
+// r3f v9 constructs THREE.Clock internally; three.js r183 deprecated it.
+// The built warn() already prepends 'THREE.' before calling setConsoleFunction,
+// so the message arrives as 'THREE.THREE.Clock: ...' — match on that.
+// Pass everything else straight to console (no extra prefix needed).
+setConsoleFunction((type: string, message: string, ...rest: unknown[]) => {
+  if (type === "warn" && message.includes("THREE.Clock")) return
+  if (type === "error") console.error(message, ...rest)
+  else if (type === "warn") console.warn(message, ...rest)
+  else console.log(message, ...rest)
+})
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ANIMATION SPEC

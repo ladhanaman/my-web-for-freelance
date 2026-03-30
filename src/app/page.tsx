@@ -42,7 +42,7 @@ export default function Home() {
         <HeroSection />
 
         {/* ── Screen 2: Gun ── */}
-        <div id={SECTION_IDS.gun}>
+        <div id={SECTION_IDS.gun} style={{ height: "200vh" }}>
           <GunHeroClient />
         </div>
 

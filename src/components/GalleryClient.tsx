@@ -1,6 +1,8 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import { motion } from "motion/react"
 
 import type { Collection } from "@/lib/collections"
 import { GALLERY_BASE_PATH } from "@/lib/collections"
@@ -14,8 +16,6 @@ import {
 
 interface GalleryClientProps {
   collection: Collection
-  prev?: Collection | null
-  next?: Collection | null
 }
 
 // ── Stable seeded pseudo-random (identical to the hash used in the old implementation)
@@ -43,7 +43,7 @@ const buildPilePositions = (slug: string, count: number) =>
     rotate: (seededValue(slug, i, "r") - 0.5) * 34,
   }))
 
-export default function GalleryClient({ collection, prev, next }: GalleryClientProps) {
+export default function GalleryClient({ collection }: GalleryClientProps) {
   // Extract number from filename for sorting
   const extractNum = (str: string) => {
     const match = str.match(/(\d+)\D*$/)
@@ -62,6 +62,22 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
     : otherPhotos
 
   const positions = buildPilePositions(collection.slug, Math.max(photos.length, 1))
+
+  // Animate entrance only when a saved (scattered) layout exists — pile state appears instantly
+  const [hasStoredLayout, setHasStoredLayout] = useState<boolean>(false)
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`gallery-drag-${collection.slug}`)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as { offsets?: unknown[] }
+      if (Array.isArray(parsed.offsets) && parsed.offsets.length > 0) {
+        setHasStoredLayout(true)
+      }
+    } catch {
+      // ignore
+    }
+  }, [collection.slug])
 
   return (
     <section
@@ -86,7 +102,7 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
         }}
         className="gallery-nav-link"
       >
-        ← Collections
+        ← FRAMESCAPE
       </Link>
 
       {/* ── Ambient warm glow behind the pile (pure CSS, no JS) ─── */}
@@ -106,66 +122,75 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
       />
 
       {/* ── Drag canvas — fills full viewport, z:10 ─────────────── */}
-      <div className="absolute inset-0" style={{ zIndex: 10 }}>
-        {photos.length > 0 ? (
-          <DragElements
-            initialPositions={positions}
-            selectedOnTop
-            className="h-full w-full"
-          >
-            {photos.map((src, i) => (
-              // Polaroid card — identical styling to the original
-              <div
-                key={`${collection.slug}-${i}`}
-                className="flex items-start justify-center rounded-[2px] shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
-                style={{
-                  width: i === photos.length - 1
-                    ? "clamp(250px, 30vw, 315px)"
-                    : "clamp(245px, 28vw, 285px)",
-                  padding: "0",
-                }}
-              >
-                <div
-                  className="protected-media relative overflow-hidden bg-[#f4f1ec]"
-                  style={{ width: "100%" }}
-                  onContextMenu={preventMediaContextMenu}
-                  onDragStart={preventMediaDragStart}
+      <motion.div
+          className="absolute inset-0"
+          style={{ zIndex: 10 }}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: hasStoredLayout ? 0 : 0.76,
+            ease: [0.76, 0, 0.36, 1],
+          }}
+        >
+          {photos.length > 0 ? (
+            <DragElements
+              initialPositions={positions}
+              selectedOnTop
+              storageKey={`gallery-drag-${collection.slug}`}
+              className="h-full w-full"
+            >
+              {photos.map((src, i) => (
+                <motion.div
+                  key={`${collection.slug}-${i}`}
+                  className="flex items-start justify-center rounded-[2px] shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
+                  style={{
+                    width: i === photos.length - 1
+                      ? "clamp(250px, 30vw, 315px)"
+                      : "clamp(245px, 28vw, 285px)",
+                    padding: "0",
+                  }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={src}
-                    alt={`${collection.name} photo ${i + 1}`}
-                    className="protected-media w-full h-auto pointer-events-none select-none block"
-                    loading="lazy"
-                    decoding="async"
-                    draggable={false}
+                  <div
+                    className="protected-media relative overflow-hidden bg-[#f4f1ec]"
+                    style={{ width: "100%" }}
                     onContextMenu={preventMediaContextMenu}
                     onDragStart={preventMediaDragStart}
-                  />
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={src}
+                      alt={`${collection.name} photo ${i + 1}`}
+                      className="protected-media w-full h-auto pointer-events-none select-none block"
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                      onContextMenu={preventMediaContextMenu}
+                      onDragStart={preventMediaDragStart}
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </DragElements>
+          ) : (
+            /* ── Empty collection placeholder ── */
+            <div className="flex h-full w-full items-center justify-center">
+              <div className="text-center" style={{ color: "#b5aa9e" }}>
+                <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
+                  ✦
+                </div>
+                <div
+                  style={{
+                    fontSize: "0.72rem",
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Coming Soon
                 </div>
               </div>
-            ))}
-          </DragElements>
-        ) : (
-          /* ── Empty collection placeholder ── */
-          <div className="flex h-full w-full items-center justify-center">
-            <div className="text-center" style={{ color: "#b5aa9e" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
-                ✦
-              </div>
-              <div
-                style={{
-                  fontSize: "0.72rem",
-                  letterSpacing: "0.2em",
-                  textTransform: "uppercase",
-                }}
-              >
-                Coming Soon
-              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </motion.div>
 
       {/* ── Right-side headline text (pointer-events-none, z:20) ── */}
       <div
@@ -176,7 +201,6 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
         }}
       >
         <div className="text-right">
-          {/* Matches the exact original h1 style */}
           <h1
             className="leading-[0.9] uppercase"
             style={{
@@ -191,7 +215,6 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
             <span style={{ fontWeight: 700, color: "#f2ede8" }}>memories.</span>
           </h1>
 
-          {/* Collection subtitle — was unused before, now surfaced */}
           <p
             style={{
               marginTop: "0.9rem",
@@ -206,26 +229,15 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
         </div>
       </div>
 
-      {/* ── Bottom bar: prev / count / next (pointer-events-auto, z:30) ── */}
+      {/* ── Bottom bar: count (pointer-events-auto, z:30) ── */}
       <div
-        className="pointer-events-auto absolute bottom-0 left-0 right-0 flex items-center justify-between"
+        className="pointer-events-auto absolute bottom-0 left-0 right-0 flex items-center justify-center"
         style={{
           zIndex: 30,
           padding: "1.25rem 1.75rem",
           borderTop: "1px solid rgba(192,117,72,0.10)",
         }}
       >
-        <div style={{ minWidth: "6rem" }}>
-          {prev && (
-            <Link
-              href={`${GALLERY_BASE_PATH}/${prev.slug}`}
-              className="gallery-nav-link"
-            >
-              ← {prev.name}
-            </Link>
-          )}
-        </div>
-
         <span
           style={{
             fontSize: "0.65rem",
@@ -236,17 +248,6 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
         >
           {String(photos.length).padStart(2, "0")} photographs
         </span>
-
-        <div style={{ minWidth: "6rem", textAlign: "right" }}>
-          {next && (
-            <Link
-              href={`${GALLERY_BASE_PATH}/${next.slug}`}
-              className="gallery-nav-link"
-            >
-              {next.name} →
-            </Link>
-          )}
-        </div>
       </div>
     </section>
   )

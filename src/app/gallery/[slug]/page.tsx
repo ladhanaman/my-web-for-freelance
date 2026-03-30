@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 
 import GalleryClient from "@/components/GalleryClient"
-import { COLLECTIONS, getAdjacentCollections } from "@/lib/collections"
+import { COLLECTIONS } from "@/lib/collections"
 import { FRAMESCAPE_HREF } from "@/lib/home-entry"
 
 interface GalleryPageProps {
@@ -22,7 +22,5 @@ export default async function GalleryPage({ params }: GalleryPageProps) {
     redirect(FRAMESCAPE_HREF)
   }
 
-  const { prev, next } = getAdjacentCollections(slug)
-
-  return <GalleryClient collection={collection} prev={prev} next={next} />
+  return <GalleryClient collection={collection} />
 }

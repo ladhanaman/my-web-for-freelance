@@ -50,7 +50,15 @@
   The main content scrolling over a pinned footer is a variant of the parallax layering technique — Z-axis parallax via z-index stacking rather than transform.
                                                                                                                                                                
   ---                                                                                                                                                          
-  10. Framescape / contact anim-fade-up                                                                                                                        
-  Scroll-Triggered Entrance Animation (or Reveal on Scroll)                                                                                                    
+  10. Framescape / contact anim-fade-up
+  Scroll-Triggered Entrance Animation (or Reveal on Scroll)
   The IntersectionObserver firing a fade + translateY is the modern standard — formerly done with libraries like AOS (Animate On Scroll) or ScrollMagic.
+
+  ---
+
+  11. Gallery page — photo cards
+  Draggable Scatter Board (or Freeform Card Throw / Interactive Polaroid Scatter)
+  Cards start as a seeded-random pile (overlapping stack with varied rotation — called a Fanned Card Stack or Riffle Stack illusion). The user drags them to
+  scatter freely across the viewport — this free-placement interaction is called a Drag-to-Scatter or Physics-Adjacent Drag Board. The pattern appears on
+  creative agency sites and tools like Milanote/Miro. Positions and z-order are persisted in localStorage so the board is restored exactly on return visits.
                                                                                                                                                           

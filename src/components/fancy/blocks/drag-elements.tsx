@@ -25,6 +25,8 @@ type DragElementsProps = {
   dragPropagation?: boolean
   selectedOnTop?: boolean
   className?: string
+  /** localStorage key — when provided, drag positions and z-order are persisted across sessions */
+  storageKey?: string
 }
 
 type DragOffset = {
@@ -57,12 +59,23 @@ const clamp = (value: number, min: number, max: number): number =>
 const resolveRotate = (value?: number | string): string =>
   value === undefined ? "" : typeof value === "number" ? `${value}deg` : value
 
+type PersistedLayout = { offsets: DragOffset[]; zIndices: number[] }
+
+// loadLayout logic merged into useEffect
+
+function saveLayout(key: string, offsets: DragOffset[], zIndices: number[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ offsets, zIndices }))
+  } catch {}
+}
+
 const DragElements: React.FC<DragElementsProps> = ({
   children,
   initialPositions,
   dragConstraints,
   selectedOnTop = true,
   className,
+  storageKey,
 }) => {
   const childCount = React.Children.count(children)
   const constraintsRef = useRef<HTMLDivElement>(null)
@@ -80,6 +93,49 @@ const DragElements: React.FC<DragElementsProps> = ({
   )
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null)
 
+  // Refs kept in sync so drag-end handler can read latest state without stale closures
+  const offsetsRef = useRef(offsets)
+  const zIndicesRef = useRef(zIndices)
+
+  useEffect(() => {
+    if (!storageKey) return
+
+    try {
+      const raw = localStorage.getItem(storageKey)
+      if (!raw) return
+      const parsed = JSON.parse(raw) as PersistedLayout
+      
+      if (parsed && Array.isArray(parsed.offsets) && Array.isArray(parsed.zIndices)) {
+        const wWidth = typeof window !== 'undefined' ? window.innerWidth : 1920
+        const wHeight = typeof window !== 'undefined' ? window.innerHeight : 1080
+
+        const safeOffsets = Array.from({ length: childCount }, (_, i) => {
+          const stored = parsed.offsets[i]
+          if (stored && typeof stored.x === 'number' && typeof stored.y === 'number') {
+            return {
+              x: clamp(stored.x, -wWidth, wWidth),
+              y: clamp(stored.y, -wHeight, wHeight)
+            }
+          }
+          return {
+            x: resolveNumericOffset(initialPositions?.[i]?.x),
+            y: resolveNumericOffset(initialPositions?.[i]?.y),
+          }
+        })
+
+        const safeZIndices = parsed.zIndices.filter(z => z < childCount)
+        for (let i = 0; i < childCount; i++) {
+          if (!safeZIndices.includes(i)) safeZIndices.push(i)
+        }
+
+        setOffsets(safeOffsets)
+        setZIndices(safeZIndices)
+        offsetsRef.current = safeOffsets
+        zIndicesRef.current = safeZIndices
+      }
+    } catch {}
+  }, [storageKey, childCount, initialPositions])
+
   const bringToFront = (index: number) => {
     if (!selectedOnTop) return
 
@@ -89,11 +145,12 @@ const DragElements: React.FC<DragElementsProps> = ({
 
       if (currentIndex === -1) {
         next.push(index)
-        return next
+      } else {
+        next.splice(currentIndex, 1)
+        next.push(index)
       }
 
-      next.splice(currentIndex, 1)
-      next.push(index)
+      zIndicesRef.current = next
       return next
     })
   }
@@ -138,6 +195,7 @@ const DragElements: React.FC<DragElementsProps> = ({
     setOffsets((prev) => {
       const next = [...prev]
       next[index] = nextOffset
+      offsetsRef.current = next
       return next
     })
   }
@@ -193,6 +251,10 @@ const DragElements: React.FC<DragElementsProps> = ({
 
       activeDragRef.current = null
       setDraggingIndex(null)
+
+      if (storageKey) {
+        saveLayout(storageKey, offsetsRef.current, zIndicesRef.current)
+      }
     }
 
     window.addEventListener("mousemove", handleWindowMouseMove)
@@ -222,6 +284,7 @@ const DragElements: React.FC<DragElementsProps> = ({
               itemRefs.current[index] = element
             }}
             data-dragging={draggingIndex === index ? "true" : "false"}
+            suppressHydrationWarning
             style={{
               top: initPos?.top,
               left: initPos?.left,

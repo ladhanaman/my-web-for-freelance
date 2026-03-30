@@ -74,7 +74,10 @@ function preserveFramescapeReturnTarget(event: ReactMouseEvent<HTMLAnchorElement
     return
   }
 
-  window.history.replaceState(window.history.state, "", FRAMESCAPE_HREF)
+  // Guard: skip if already at the target to prevent stale state accumulation
+  if (window.location.pathname + window.location.hash === FRAMESCAPE_HREF) return
+
+  window.history.replaceState(null, "", FRAMESCAPE_HREF)
 }
 
 function CollectionCard({
@@ -224,6 +227,7 @@ function CollectionCard({
           <>
             <motion.div
               aria-hidden
+              initial={{ opacity: 0, scale: 0.92 }}
               animate={{
                 opacity: isHovered ? 1 : 0,
                 scale: isHovered ? 1 : 0.92,

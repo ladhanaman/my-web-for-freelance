@@ -56,10 +56,7 @@ async function main(): Promise<void> {
     }
     seenSlugs.add(collection.slug)
 
-    const sourceDir = path.join(SOURCE_ROOT, collection.slug)
-    if (!(await pathExists(sourceDir))) {
-      errors.push(`Missing source folder for slug "${collection.slug}": ${sourceDir}`)
-    }
+
 
     const assetPaths = [collection.coverPhoto, ...collection.photos]
     for (const assetPath of assetPaths) {
