@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import AdminLoginForm from "@/components/admin/AdminLoginForm";
+import { getAdminAuthConfigurationError } from "@/lib/admin-auth";
 
 import { adminLoginAction } from "./actions";
 
@@ -21,6 +22,7 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   const params = await searchParams;
   const nextPath = getNextPath(params.next);
   const action = adminLoginAction.bind(null, nextPath);
+  const configError = getAdminAuthConfigurationError();
 
   return (
     <main className="min-h-screen bg-[#100e0c] px-4 py-16 sm:px-8">
@@ -30,6 +32,13 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
         <p className="mt-2 text-sm text-[#8c7f74]">
           Enter your admin password to continue.
         </p>
+
+        {configError ? (
+          <div className="mt-6 rounded-lg border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            Admin auth is misconfigured. Set a strong <code>ADMIN_SESSION_SECRET</code> in your
+            environment before logging in.
+          </div>
+        ) : null}
 
         <div className="mt-6">
           <AdminLoginForm action={action} />

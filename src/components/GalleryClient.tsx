@@ -1,12 +1,16 @@
 "use client"
 
-import Image from "next/image"
 import Link from "next/link"
 
 import type { Collection } from "@/lib/collections"
 import { GALLERY_BASE_PATH } from "@/lib/collections"
 import DragElements from "@/components/fancy/blocks/drag-elements"
 import GridBackground from "@/components/GridBackground"
+import { FRAMESCAPE_HREF } from "@/lib/home-entry"
+import {
+  preventMediaContextMenu,
+  preventMediaDragStart,
+} from "@/lib/media-protection"
 
 interface GalleryClientProps {
   collection: Collection
@@ -68,7 +72,7 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
 
       {/* ── Back breadcrumb ─────────────────────────────────────── */}
       <Link
-        href="/#framescape"
+        href={FRAMESCAPE_HREF}
         style={{
           position: "absolute",
           top: "1.5rem",
@@ -122,15 +126,21 @@ export default function GalleryClient({ collection, prev, next }: GalleryClientP
                 }}
               >
                 <div
-                  className="relative overflow-hidden bg-[#f4f1ec]"
+                  className="protected-media relative overflow-hidden bg-[#f4f1ec]"
                   style={{ width: "100%" }}
+                  onContextMenu={preventMediaContextMenu}
+                  onDragStart={preventMediaDragStart}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={src}
                     alt={`${collection.name} photo ${i + 1}`}
-                    className="w-full h-auto pointer-events-none select-none block"
+                    className="protected-media w-full h-auto pointer-events-none select-none block"
+                    loading="lazy"
+                    decoding="async"
                     draggable={false}
+                    onContextMenu={preventMediaContextMenu}
+                    onDragStart={preventMediaDragStart}
                   />
                 </div>
               </div>

@@ -162,6 +162,13 @@
   box-shadow: 0 0 0 1px rgba(192,117,72,0.44), 0 16px 40px rgba(0,0,0,0.42);
 }
 
+/* ── Scoped media hardening for gallery/Framescape assets ── */
+.protected-media {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
 /* ── Gallery page nav links (back / prev / next) ── */
 .gallery-nav-link {
   font-size: 0.68rem;

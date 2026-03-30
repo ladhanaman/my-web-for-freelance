@@ -20,7 +20,13 @@ export default function NavBar() {
   // Runs synchronously before the browser paints — kills scroll-position flash on reload
   useLayoutEffect(() => {
     window.history.scrollRestoration = "manual"
-    window.scrollTo(0, 0)
+
+    const isReload =
+      performance?.getEntriesByType?.('navigation')?.[0]?.type === 'reload'
+
+    if (isReload || !window.location.hash) {
+      window.scrollTo(0, 0)
+    }
   }, [])
 
   useEffect(() => {

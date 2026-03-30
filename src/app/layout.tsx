@@ -1,28 +1,57 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const geistSans = Geist({
+const geistSans = localFont({
+  src: [
+    {
+      path: "./fonts/geist-latin.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  display: "swap",
+  adjustFontFallback: "Arial",
 });
 
-const geistMono = Geist_Mono({
+const geistMono = localFont({
+  src: [
+    {
+      path: "./fonts/geist-mono-latin.woff2",
+      weight: "100 900",
+      style: "normal",
+    },
+  ],
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
+  adjustFontFallback: "Arial",
 });
 
-const fraunces = Fraunces({
-  weight: ["700"],
-  style:  ["normal"],
-  subsets: ["latin"],
+const fraunces = localFont({
+  src: [
+    {
+      path: "./fonts/fraunces-latin.woff2",
+      weight: "700",
+      style: "normal",
+    },
+  ],
   variable: "--font-fraunces",
+  display: "swap",
+  adjustFontFallback: "Times New Roman",
 });
 
-const pressStart = Press_Start_2P({
-  weight: "400",
-  subsets: ["latin"],
+const pressStart = localFont({
+  src: [
+    {
+      path: "./fonts/press-start-2p-latin.woff2",
+      weight: "400",
+      style: "normal",
+    },
+  ],
   variable: "--font-press-start",
+  display: "swap",
+  adjustFontFallback: "Arial",
 });
 
 export const metadata: Metadata = {
@@ -37,7 +66,18 @@ const INITIAL_SCROLL_RESET_SCRIPT = `
         window.history.scrollRestoration = "manual";
       }
 
-      window.scrollTo(0, 0);
+      const isReload =
+        performance?.getEntriesByType?.('navigation')?.[0]?.type === 'reload';
+
+      if (isReload) {
+        // On reload: strip any hash and return to the top of the page
+        if (window.location.hash) {
+          history.replaceState(null, '', window.location.pathname + window.location.search);
+        }
+        window.scrollTo(0, 0);
+      } else if (!window.location.hash) {
+        window.scrollTo(0, 0);
+      }
     } catch {}
   })();
 `;

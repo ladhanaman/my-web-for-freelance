@@ -1,7 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { ADMIN_AUTH_COOKIE, isAdminGateEnabled, isValidAdminCookie } from "@/lib/admin-auth";
+import {
+  ADMIN_AUTH_COOKIE,
+  getAdminAuthConfigurationError,
+  isAdminGateEnabled,
+  isValidAdminCookie,
+} from "@/lib/admin-auth";
 
 function buildLoginRedirect(request: NextRequest): NextResponse {
   const loginUrl = new URL("/admin/login", request.url);
@@ -14,7 +19,7 @@ function buildLoginRedirect(request: NextRequest): NextResponse {
   return NextResponse.redirect(loginUrl);
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (!isAdminGateEnabled()) {
@@ -25,8 +30,19 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  const configError = getAdminAuthConfigurationError();
+  if (configError) {
+    console.error("[admin-auth] misconfigured proxy:", configError);
+
+    if (pathname.startsWith("/api/admin/")) {
+      return NextResponse.json({ error: "Admin auth is misconfigured." }, { status: 500 });
+    }
+
+    return buildLoginRedirect(request);
+  }
+
   const authCookie = request.cookies.get(ADMIN_AUTH_COOKIE)?.value;
-  if (isValidAdminCookie(authCookie)) {
+  if (await isValidAdminCookie(authCookie)) {
     return NextResponse.next();
   }
 

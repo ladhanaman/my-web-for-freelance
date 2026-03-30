@@ -10,10 +10,13 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
 } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useGLTF, Environment } from "@react-three/drei"
+import { RGBELoader } from "three-stdlib"
 import * as THREE from "three"
+import { resolveHdrAsset } from "@/lib/hdr-cache"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ANIMATION SPEC
@@ -28,6 +31,7 @@ const SCALE_END = 0.70                      // 30 % size reduction
 const X_SHIFT = 0.12                      // rightward shift as fraction of viewport width
 const SPRING = 12                        // exponential spring stiffness (higher = snappier)
 const SNAP_THRESH = 0.005                     // snap to exact target near t=0 and t=1
+const GUN_MODEL_PATH = "/flintlock_pistol.glb"
 
 type SceneErrorBoundaryProps = {
   children: ReactNode
@@ -55,6 +59,81 @@ class SceneErrorBoundary extends Component<SceneErrorBoundaryProps, SceneErrorBo
   }
 }
 
+function CachedEnvironmentMap() {
+  const [environmentSrc, setEnvironmentSrc] = useState<string | null>(null)
+  const [environmentMap, setEnvironmentMap] = useState<THREE.DataTexture | null>(null)
+
+  useEffect(() => {
+    let isActive = true
+    let activeTexture: THREE.DataTexture | null = null
+
+    const buildTextureFromBlob = async (blob: Blob) => {
+      const buffer = await blob.arrayBuffer()
+      const loader = new RGBELoader()
+      const parsed = loader.parse(buffer)
+      const texture = new THREE.DataTexture(
+        parsed.data,
+        parsed.width,
+        parsed.height,
+        THREE.RGBAFormat,
+        parsed.type
+      )
+
+      texture.colorSpace = THREE.LinearSRGBColorSpace
+      texture.flipY = true
+      texture.generateMipmaps = false
+      texture.magFilter = THREE.LinearFilter
+      texture.minFilter = THREE.LinearFilter
+      texture.mapping = THREE.EquirectangularReflectionMapping
+      texture.needsUpdate = true
+
+      return texture
+    }
+
+    const loadEnvironment = async () => {
+      const resolved = await resolveHdrAsset()
+
+      if (!isActive) return
+
+      if (resolved.kind === "cached" && resolved.blob) {
+        try {
+          const texture = await buildTextureFromBlob(resolved.blob)
+
+          if (!isActive) {
+            texture.dispose()
+            return
+          }
+
+          activeTexture = texture
+          setEnvironmentMap(texture)
+          setEnvironmentSrc(null)
+          return
+        } catch {
+          // Fall back to the direct HDR URL if cached blob parsing fails.
+        }
+      }
+
+      setEnvironmentMap(null)
+      setEnvironmentSrc(resolved.src)
+    }
+
+    void loadEnvironment()
+
+    return () => {
+      isActive = false
+      activeTexture?.dispose()
+    }
+  }, [])
+
+  if (environmentMap) {
+    return <Environment map={environmentMap} />
+  }
+
+  if (!environmentSrc) return null
+
+  return <Environment files={environmentSrc} />
+}
+
 // Cubic ease-in-out — smooth S-curve, same curve drives all three transforms
 function ease(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
@@ -62,7 +141,7 @@ function ease(t: number): number {
 
 // ─── 3-D gun ─────────────────────────────────────────────────────────────────
 function GunModel({ progress }: { progress: { current: number } }) {
-  const { scene } = useGLTF("/flintlock_pistol.glb")
+  const { scene } = useGLTF(GUN_MODEL_PATH)
   const cloned = useMemo(() => scene.clone(true), [scene])
   const group = useRef<THREE.Group>(null)
   const { viewport } = useThree()
@@ -131,6 +210,8 @@ function GunModel({ progress }: { progress: { current: number } }) {
     </group>
   )
 }
+
+useGLTF.preload(GUN_MODEL_PATH)
 
 // ─── Tagline words with their scroll-in windows ──────────────────────────────
 // Each word fades + slides up independently, staggered across scroll progress.
@@ -276,7 +357,7 @@ export default function GunHero() {
             />
             <GunModel progress={scrollProgress} />
             <SceneErrorBoundary>
-              <Environment files="/env/dikhololo_night_1k.hdr" />
+              <CachedEnvironmentMap />
             </SceneErrorBoundary>
           </Suspense>
         </Canvas>

@@ -3,7 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { ADMIN_AUTH_COOKIE, getAdminPassword, isAdminGateEnabled } from "@/lib/admin-auth";
+import {
+  ADMIN_AUTH_COOKIE,
+  ADMIN_SESSION_MAX_AGE_SECONDS,
+  createAdminSessionToken,
+  getAdminAuthConfigurationError,
+  getAdminPassword,
+  isAdminGateEnabled,
+} from "@/lib/admin-auth";
 
 export interface AdminLoginState {
   error?: string;
@@ -32,6 +39,12 @@ export async function adminLoginAction(
     redirect(safeNextPath);
   }
 
+  const configError = getAdminAuthConfigurationError();
+  if (configError) {
+    console.error("[admin-auth] misconfigured server action:", configError);
+    return { error: "Admin auth is misconfigured." };
+  }
+
   const submittedPassword = String(formData.get("password") ?? "").trim();
   const expectedPassword = getAdminPassword();
 
@@ -43,13 +56,14 @@ export async function adminLoginAction(
     return { error: "Invalid admin password." };
   }
 
+  const sessionToken = await createAdminSessionToken();
   const cookieStore = await cookies();
-  cookieStore.set(ADMIN_AUTH_COOKIE, expectedPassword, {
+  cookieStore.set(ADMIN_AUTH_COOKIE, sessionToken, {
     httpOnly: true,
     sameSite: "strict",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 12,
+    maxAge: ADMIN_SESSION_MAX_AGE_SECONDS,
   });
 
   redirect(safeNextPath);

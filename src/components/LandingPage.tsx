@@ -6,19 +6,20 @@ import { SpiralAnimation } from '@/components/SpiralAnimation'
 
 const BUTTON_DELAY = 4000 // ms — button doesn't exist in DOM until this elapses
 
-export default function LandingPage() {
+interface LandingPageProps {
+  onDismiss?: () => void
+  onReady?: () => void
+}
+
+export default function LandingPage({ onDismiss, onReady }: LandingPageProps) {
   const [visible, setVisible] = useState(true)
   const [buttonReady, setButtonReady] = useState(false)
   const overlayRef = useRef<HTMLDivElement>(null)
   const uiRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const placeholder = document.getElementById('landing-placeholder')
-
-    if (!placeholder) return
-
-    placeholder.style.display = 'none'
-  }, [])
+    onReady?.()
+  }, [onReady])
 
   // Mount button into the DOM only after 4s — not clickable before that
   useEffect(() => {
@@ -28,7 +29,10 @@ export default function LandingPage() {
 
   const handleOpen = () => {
     const tl = gsap.timeline({
-      onComplete: () => setVisible(false),
+      onComplete: () => {
+        onDismiss?.()
+        setVisible(false)
+      },
     })
 
     // 1. Fade UI out first

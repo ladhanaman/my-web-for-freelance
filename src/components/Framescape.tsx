@@ -2,6 +2,7 @@
 
 import {
   type PointerEvent as ReactPointerEvent,
+  type MouseEvent as ReactMouseEvent,
   useEffect,
   useRef,
   useState,
@@ -11,12 +12,17 @@ import Link from "next/link"
 
 import Floating, { FloatingElement } from "@/components/fancy/image/parallax-floating"
 import { useFinePointer } from "@/hooks/use-fine-pointer"
+import { FRAMESCAPE_HREF } from "@/lib/home-entry"
 import {
   COLLECTIONS,
   GALLERY_BASE_PATH,
   SECTION_IDS,
   type Collection,
 } from "@/lib/collections"
+import {
+  preventMediaContextMenu,
+  preventMediaDragStart,
+} from "@/lib/media-protection"
 
 // ── Layout slots for collection cards — 9 total
 // top/left are percentage strings relative to the section
@@ -54,6 +60,21 @@ interface CollectionCardProps {
   supportsFineHover: boolean
   isActive: boolean
   onHoverChange: (slug: string | null) => void
+}
+
+function preserveFramescapeReturnTarget(event: ReactMouseEvent<HTMLAnchorElement>) {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  ) {
+    return
+  }
+
+  window.history.replaceState(window.history.state, "", FRAMESCAPE_HREF)
 }
 
 function CollectionCard({
@@ -136,7 +157,10 @@ function CollectionCard({
   return (
     <Link
       href={`${GALLERY_BASE_PATH}/${collection.slug}`}
-      className="collection-card"
+      className="collection-card protected-media"
+      onClick={preserveFramescapeReturnTarget}
+      onContextMenu={preventMediaContextMenu}
+      onDragStart={preventMediaDragStart}
       onPointerEnter={handlePointerEnter}
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
@@ -154,6 +178,7 @@ function CollectionCard({
       }}
     >
       <div
+        className="protected-media"
         style={{
           position: "relative",
           width: "100%",
@@ -166,9 +191,11 @@ function CollectionCard({
           <img
             src={collection.coverPhoto}
             alt={collection.name}
+            className="protected-media"
             draggable={false}
             style={{ width: "100%", height: "auto", display: "block", opacity: 0 }}
-            loading="lazy"
+            onContextMenu={preventMediaContextMenu}
+            onDragStart={preventMediaDragStart}
             onError={(e) => {
               const img = e.currentTarget
               img.style.display = "none"
