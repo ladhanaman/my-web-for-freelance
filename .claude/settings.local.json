@@ -28,7 +28,8 @@
       "Bash(curl -s --connect-timeout 5 \"https://ep-sparkling-snow-a19zch4u-pooler.ap-southeast-1.aws.neon.tech\")",
       "Bash(npm install:*)",
       "Bash(npm list:*)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "WebFetch(domain:21st.dev)"
     ]
   }
 }
