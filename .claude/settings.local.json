@@ -29,7 +29,9 @@
       "Bash(npm install:*)",
       "Bash(npm list:*)",
       "Bash(npm view:*)",
-      "WebFetch(domain:21st.dev)"
+      "WebFetch(domain:21st.dev)",
+      "Bash(ls .env*)",
+      "Bash(find src:*)"
     ]
   }
 }
