@@ -51,7 +51,7 @@ const errorCls = "text-xs text-red-400 mt-1";
 
 interface ContactFormProps {
   onSuccess: () => void;
-  onSubmitStart?: () => void;
+  onSubmitStart?: (origin: { x: number; y: number }) => void;
   onCompletedChange?: (count: number) => void;
   onCatSignalChange?: (signal: OnekoCatFormSignal) => void;
 }
@@ -92,6 +92,12 @@ export default function ContactForm({ onSuccess, onSubmitStart, onCompletedChang
   const [isFormFocused, setIsFormFocused] = useState(false);
   const [activeField, setActiveField] = useState<OnekoCatField>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const {
     register, handleSubmit, control, watch, setValue, setFocus,
@@ -183,7 +189,13 @@ export default function ContactForm({ onSuccess, onSubmitStart, onCompletedChang
   };
 
   const onSubmit = async (data: LeadFormData) => {
-    onSubmitStart?.();
+    const submitBtn = formRef.current?.querySelector<HTMLElement>('[type="submit"]');
+    const rect = submitBtn?.getBoundingClientRect();
+    const origin = {
+      x: rect ? rect.left + rect.width / 2 : window.innerWidth / 2,
+      y: rect ? rect.top + rect.height / 2 : window.innerHeight / 2,
+    };
+    onSubmitStart?.(origin);
     setSubmitting(true);
     setServerError(null);
     setSubmitState("submitting");
@@ -197,14 +209,18 @@ export default function ContactForm({ onSuccess, onSubmitStart, onCompletedChang
         signal:  controller.signal,
       });
       if (!res.ok) throw new Error("failed");
-      setSubmitState("success");
-      onSuccess();
+      if (mountedRef.current) {
+        setSubmitState("success");
+        onSuccess();
+      }
     } catch {
-      setServerError("Something went wrong. Please try again or email us directly.");
-      setSubmitState("error");
+      if (mountedRef.current) {
+        setServerError("Something went wrong. Please try again or email us directly.");
+        setSubmitState("error");
+      }
     } finally {
       clearTimeout(timer);
-      setSubmitting(false);
+      if (mountedRef.current) setSubmitting(false);
     }
   };
 

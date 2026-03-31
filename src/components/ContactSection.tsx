@@ -44,6 +44,10 @@ export default function ContactSection() {
   const [completedCount, setCompletedCount] = useState(0);
   const [phase, setPhase] = useState<Phase>("form");
   const [showShader, setShowShader] = useState(false);
+  const [shaderOrigin, setShaderOrigin] = useState({ x: 0, y: 0 });
+  const [showVignette, setShowVignette] = useState(false);
+  const [vignetteExiting, setVignetteExiting] = useState(false);
+  const vignetteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleWarpComplete = useCallback(() => {
@@ -271,6 +275,9 @@ export default function ContactSection() {
       if (delayedMilestoneTimerRef.current) {
         window.clearTimeout(delayedMilestoneTimerRef.current);
       }
+      if (vignetteTimerRef.current) {
+        clearTimeout(vignetteTimerRef.current);
+      }
       speechQueueRef.current = [];
       isSpeakingRef.current = false;
       currentSpeechKeyRef.current = null;
@@ -317,6 +324,15 @@ export default function ContactSection() {
         <ShaderBackground
           onWarpComplete={handleWarpComplete}
           isFadingOut={phase === "cat"}
+          originX={shaderOrigin.x}
+          originY={shaderOrigin.y}
+        />
+      )}
+
+      {/* Vignette overlay — darkness closes from screen edges toward the submit button */}
+      {showVignette && (
+        <div
+          className={`fixed inset-0 z-[101] pointer-events-none bg-black ${vignetteExiting ? "anim-vignette-out" : "anim-vignette-in"}`}
         />
       )}
 
@@ -324,13 +340,6 @@ export default function ContactSection() {
       {phase !== "cat" && (
         <div className={phase === "shader" ? "opacity-0 pointer-events-none transition-opacity duration-1000 ease-out" : "duration-300 transition-opacity"}>
           <header className="mb-12 text-center anim-fade-up" style={{ animationDelay: "0ms" }}>
-            <div className="mb-4 flex items-center justify-center gap-3">
-              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#C07548]">
-                Get Started
-              </span>
-              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
-            </div>
             <h2 style={{
               fontSize: "clamp(2.6rem, 5.2vw, 5rem)",
               fontWeight: 800,
@@ -374,9 +383,21 @@ export default function ContactSection() {
               style={{ animationDelay: "240ms" }}
             >
               <ContactForm
-                onSubmitStart={() => {
-                  setPhase("shader");
-                  setShowShader(true); // Triggers shader mount
+                onSubmitStart={(origin) => {
+                  setShaderOrigin(origin);
+                  // Mount shader immediately so GLSL compiles during the vignette window,
+                  // not after it — which would freeze the main thread and kill the animation.
+                  setShowVignette(true);
+                  setVignetteExiting(false);
+                  vignetteTimerRef.current = setTimeout(() => {
+                    // Mount shader + start vignette fade-out at the same time.
+                    // CSS opacity keyframes run on the compositor, so GLSL compilation
+                    // on the main thread won't block the vignette animation.
+                    setShowShader(true);
+                    setVignetteExiting(true);
+                    setPhase("shader");
+                    setTimeout(() => setShowVignette(false), 1000);
+                  }, 1200);
                 }}
                 onSuccess={() => { }} // Not needed, handled optimistically
                 onCompletedChange={setCompletedCount}
@@ -406,10 +427,10 @@ export default function ContactSection() {
               letterSpacing: "-0.04em",
               color: "#f2ede8",
             }}>
-              Transmission Received.
+              You&apos;ve got my attention.
             </h2>
             <p className="mt-4 text-base text-[#8c7f74] sm:text-lg max-w-lg mx-auto leading-relaxed">
-              Brief is locked. I&apos;ll be in touch soon.
+              I&apos;ll be in touch soon.
             </p>
           </header>
 

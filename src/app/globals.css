@@ -196,38 +196,34 @@
   }
 }
 
-/* ── Pixel dog animations ── */
-@keyframes shaderFadeIn {
-  from {
-    opacity: 0;
-  }
+@keyframes vignetteIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
 
-  to {
-    opacity: 1;
-  }
+@keyframes vignetteOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.anim-vignette-in {
+  animation: vignetteIn 1.2s ease-in forwards;
+}
+
+.anim-vignette-out {
+  animation: vignetteOut 1s ease-out forwards;
+}
+
+@keyframes shaderFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes shaderFadeOut {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
 
-@keyframes catRevealIn {
-  from {
-    opacity: 0;
-    transform: scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
 
 @keyframes dogIdle {
 
@@ -329,7 +325,7 @@
 }
 
 .anim-shader-in {
-  animation: shaderFadeIn 0.5s ease forwards;
+  animation: shaderFadeIn 1s ease-out forwards;
 }
 
 .anim-shader-out {
@@ -337,9 +333,7 @@
   pointer-events: none;
 }
 
-.anim-cat-reveal {
-  animation: catRevealIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+
 
 .anim-float {
   animation: float 9s ease-in-out infinite;

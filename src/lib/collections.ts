@@ -57,7 +57,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "black-and-white",
     name: "Black & White",
     description: "Stripped to essentials",
-    galleryHeading: "shades of silence.",
+    galleryHeading: "stripped to bone.",
     coverPhoto: "/photos/black-and-white/cover.webp",
     photos: [
       "/photos/black-and-white/2.webp",
@@ -99,7 +99,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "desert-soul",
     name: "Desert Soul",
     description: "The sweeping dunes",
-    galleryHeading: "oceans of sand.",
+    galleryHeading: "sand never settles.",
     coverPhoto: "/photos/desert-soul/cover.webp",
     photos: [
       "/photos/desert-soul/1.webp",
@@ -115,7 +115,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "framed-by-the-winds",
     name: "Framed By The Winds",
     description: "Wind-carved moments",
-    galleryHeading: "wind's timeless art.",
+    galleryHeading: "nothing but wind.",
     coverPhoto: "/photos/framed-by-the-winds/cover.webp",
     photos: [
       "/photos/framed-by-the-winds/50.webp",
@@ -131,7 +131,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "ghoose",
     name: "Ghoose",
     description: "Flights of fancy",
-    galleryHeading: "wings in motion.",
+    galleryHeading: "never looked back.",
     coverPhoto: "/photos/ghoose/cover.webp",
     photos: [
       "/photos/ghoose/1.webp",
@@ -179,7 +179,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "sunny-day",
     name: "Sunny Day",
     description: "Basking in the light",
-    galleryHeading: "basking in light.",
+    galleryHeading: "stay a while.",
     coverPhoto: "/photos/sunny-day/cover.webp",
     photos: [
       "/photos/sunny-day/06.webp",
