@@ -108,6 +108,11 @@ export default function ShaderBackground({ onWarpComplete, isFadingOut, originX,
   const doneRef = useRef(false);
 
   useEffect(() => {
+    document.documentElement.style.overflow = 'hidden';
+    return () => { document.documentElement.style.overflow = ''; };
+  }, []);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -215,7 +220,7 @@ void main(){gl_Position=position;}`;
   }, [onWarpComplete, originX, originY]);
 
   return (
-    <div className={`fixed inset-0 z-[100] bg-black ${isFadingOut ? 'anim-shader-out' : 'anim-shader-in'}`}>
+    <div className={`fixed inset-0 z-[100] bg-black ${isFadingOut ? 'anim-shader-out' : ''}`}>
       <canvas
         ref={canvasRef}
         style={{ display: "block", width: "100%", height: "100%" }}
