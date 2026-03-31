@@ -17,7 +17,7 @@ const MOBILE_UA_RE =
 
 /** Belt-and-suspenders guard for static asset extensions. */
 const STATIC_EXT_RE =
-  /\.(?:ico|svg|png|jpg|jpeg|webp|gif|woff2?|ttf|otf|glb|gltf|css|js|map|json|txt|xml)$/i;
+  /\.(?:ico|svg|png|jpg|jpeg|webp|gif|woff2?|ttf|otf|glb|gltf|css|js|map|json|txt|xml|lottie)$/i;
 
 function buildLoginRedirect(request: NextRequest): NextResponse {
   const loginUrl = new URL("/admin/login", request.url);
