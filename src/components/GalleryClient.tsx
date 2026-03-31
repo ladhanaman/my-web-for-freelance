@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { motion } from "motion/react"
 
@@ -31,6 +31,12 @@ const hashString = (value: string): number => {
 const seededValue = (slug: string, index: number, channel: string): number =>
   hashString(`${slug}:${index}:${channel}`) / 4294967295
 
+// Extract number from filename for sorting
+const extractNum = (str: string) => {
+  const match = str.match(/(\d+)\D*$/)
+  return match ? parseInt(match[1], 10) : 0
+}
+
 // ── Build pile: all cards start at nearly the same position,
 //   variance in rotation (-17° → +17°) creates the "stacked" depth illusion.
 //   Tiny xy jitter (±11px) gives organic imperfection, not a perfect stack.
@@ -44,24 +50,19 @@ const buildPilePositions = (slug: string, count: number) =>
   }))
 
 export default function GalleryClient({ collection }: GalleryClientProps) {
-  // Extract number from filename for sorting
-  const extractNum = (str: string) => {
-    const match = str.match(/(\d+)\D*$/)
-    return match ? parseInt(match[1], 10) : 0
-  }
+  const photos = useMemo(() => {
+    // Remove the coverPhoto from the original list if it exists to avoid duplicates
+    const otherPhotos = collection.photos.filter((p) => p !== collection.coverPhoto)
+    // Sort descending so lower values are at the end (visually on top of the stack)
+    otherPhotos.sort((a, b) => extractNum(b) - extractNum(a))
+    // Append coverPhoto at the end so it renders visually on top of all other photos
+    return collection.coverPhoto ? [...otherPhotos, collection.coverPhoto] : otherPhotos
+  }, [collection.photos, collection.coverPhoto])
 
-  // Remove the coverPhoto from the original list if it exists to avoid duplicates
-  const otherPhotos = collection.photos.filter((p) => p !== collection.coverPhoto)
-
-  // Sort descending so lower values are at the end (visually on top of the stack)
-  otherPhotos.sort((a, b) => extractNum(b) - extractNum(a))
-
-  // Append coverPhoto at the end so it renders visually on top of all other photos
-  const photos = collection.coverPhoto
-    ? [...otherPhotos, collection.coverPhoto]
-    : otherPhotos
-
-  const positions = buildPilePositions(collection.slug, Math.max(photos.length, 1))
+  const positions = useMemo(
+    () => buildPilePositions(collection.slug, Math.max(photos.length, 1)),
+    [collection.slug, photos.length]
+  )
 
   // Animate entrance only when a saved (scattered) layout exists — pile state appears instantly
   const [hasStoredLayout, setHasStoredLayout] = useState<boolean>(false)

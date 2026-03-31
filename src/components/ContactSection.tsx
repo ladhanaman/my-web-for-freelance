@@ -48,6 +48,8 @@ export default function ContactSection() {
   const [showVignette, setShowVignette] = useState(false);
   const [vignetteExiting, setVignetteExiting] = useState(false);
   const vignetteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const innerVignetteTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warpTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleWarpComplete = useCallback(() => {
@@ -61,7 +63,7 @@ export default function ContactSection() {
     });
 
     // Wait for the .anim-shader-out css cross-fade to complete
-    setTimeout(() => {
+    warpTimerRef.current = setTimeout(() => {
       setShowShader(false);
     }, 1500);
   }, []);
@@ -261,6 +263,18 @@ export default function ContactSection() {
     setCatSignal(nextSignal);
   }, [clearDelayedMilestone, scheduleMilestoneSpeech, speak]);
 
+  const handleSubmitStart = useCallback((origin: { x: number; y: number }) => {
+    setShaderOrigin(origin);
+    setShowVignette(true);
+    setVignetteExiting(false);
+    vignetteTimerRef.current = setTimeout(() => {
+      setShowShader(true);
+      setVignetteExiting(true);
+      setPhase("shader");
+      innerVignetteTimerRef.current = setTimeout(() => setShowVignette(false), 1000);
+    }, 1200);
+  }, []);
+
   const handleCatClick = useCallback(() => {
     const msg = PURR_VARIATIONS[Math.floor(Math.random() * PURR_VARIATIONS.length)];
     setCatRestToken((prev) => prev + 1);
@@ -277,6 +291,12 @@ export default function ContactSection() {
       }
       if (vignetteTimerRef.current) {
         clearTimeout(vignetteTimerRef.current);
+      }
+      if (innerVignetteTimerRef.current) {
+        clearTimeout(innerVignetteTimerRef.current);
+      }
+      if (warpTimerRef.current) {
+        clearTimeout(warpTimerRef.current);
       }
       speechQueueRef.current = [];
       isSpeakingRef.current = false;
@@ -383,22 +403,7 @@ export default function ContactSection() {
               style={{ animationDelay: "240ms" }}
             >
               <ContactForm
-                onSubmitStart={(origin) => {
-                  setShaderOrigin(origin);
-                  // Mount shader immediately so GLSL compiles during the vignette window,
-                  // not after it — which would freeze the main thread and kill the animation.
-                  setShowVignette(true);
-                  setVignetteExiting(false);
-                  vignetteTimerRef.current = setTimeout(() => {
-                    // Mount shader + start vignette fade-out at the same time.
-                    // CSS opacity keyframes run on the compositor, so GLSL compilation
-                    // on the main thread won't block the vignette animation.
-                    setShowShader(true);
-                    setVignetteExiting(true);
-                    setPhase("shader");
-                    setTimeout(() => setShowVignette(false), 1000);
-                  }, 1200);
-                }}
+                onSubmitStart={handleSubmitStart}
                 onSuccess={() => { }} // Not needed, handled optimistically
                 onCompletedChange={setCompletedCount}
                 onCatSignalChange={handleCatSignalChange}

@@ -12,6 +12,8 @@ export default function AdminSignOutButton() {
 
     try {
       await fetch("/api/admin/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("[AdminSignOutButton] Logout request failed:", err);
     } finally {
       setIsLoading(false);
       router.push("/admin/login");

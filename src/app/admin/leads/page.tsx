@@ -22,7 +22,8 @@ async function loadAdminLeads(
 ): Promise<Awaited<ReturnType<typeof getLeadsPage>> | null> {
   try {
     return await getLeadsPage(filters);
-  } catch {
+  } catch (err) {
+    console.error("[AdminLeadsPage] Failed to load leads:", err);
     return null;
   }
 }

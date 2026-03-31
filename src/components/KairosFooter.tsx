@@ -1,6 +1,14 @@
 "use client"
 
+import type React from "react"
 import { SECTION_IDS } from "@/lib/collections"
+
+const handleLinkEnter = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  e.currentTarget.style.opacity = "0.55"
+}
+const handleLinkLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
+  e.currentTarget.style.opacity = "1"
+}
 
 const NAV_LINKS = [
   { label: "Home", href: `#${SECTION_IDS.hero}` },
@@ -60,8 +68,8 @@ export default function KairosFooter() {
               key={label}
               href={href}
               style={LINK_STYLE}
-              onMouseEnter={e => (e.currentTarget.style.opacity = "0.55")}
-              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+              onMouseEnter={handleLinkEnter}
+              onMouseLeave={handleLinkLeave}
             >
               {label}
             </a>
@@ -75,8 +83,8 @@ export default function KairosFooter() {
               key={label}
               href={href}
               style={LINK_STYLE}
-              onMouseEnter={e => (e.currentTarget.style.opacity = "0.55")}
-              onMouseLeave={e => (e.currentTarget.style.opacity = "1")}
+              onMouseEnter={handleLinkEnter}
+              onMouseLeave={handleLinkLeave}
             >
               {label}
             </a>

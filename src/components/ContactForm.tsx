@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, type FocusEvent } from "react";
+import { useState, useEffect, useMemo, useRef, type FocusEvent } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -110,25 +110,27 @@ export default function ContactForm({ onSuccess, onSubmitStart, onCompletedChang
 
   const watchedValues = watch(TRACKED_FIELDS);
   const [nameVal, emailVal, servicesVal, timelineVal, challengeVal, budgetVal] = watchedValues;
-  const nameOk = leadSchema.shape.name.safeParse(nameVal).success;
-  const emailOk = leadSchema.shape.email.safeParse(emailVal).success;
-  const servicesOk = leadSchema.shape.services.safeParse(servicesVal).success;
-  const timelineOk = leadSchema.shape.timeline.safeParse(timelineVal).success;
-  const budgetOk = leadSchema.shape.budget.safeParse(budgetVal).success;
-  const selectedServices = Array.isArray(servicesVal) ? servicesVal : [];
-  const latestSelectedService = selectedServices[selectedServices.length - 1] ?? null;
-  const activeServicePrompt = getServiceFollowUpPrompt(latestSelectedService);
-  const activePrompts = selectedServices
-    .map((s) => getServiceFollowUpPrompt(s))
-    .filter((p): p is NonNullable<typeof p> => p !== null);
-  const challengeText = typeof challengeVal === "string" ? challengeVal : "";
-  const completedCount = [
-    nameOk,
-    emailOk,
-    servicesOk,
-    timelineOk,
-    budgetOk,
-  ].filter(Boolean).length;
+
+  const {
+    nameOk, emailOk, servicesOk, timelineOk, budgetOk,
+    selectedServices, latestSelectedService, activeServicePrompt,
+    activePrompts, challengeText, completedCount,
+  } = useMemo(() => {
+    const nameOk = leadSchema.shape.name.safeParse(nameVal).success;
+    const emailOk = leadSchema.shape.email.safeParse(emailVal).success;
+    const servicesOk = leadSchema.shape.services.safeParse(servicesVal).success;
+    const timelineOk = leadSchema.shape.timeline.safeParse(timelineVal).success;
+    const budgetOk = leadSchema.shape.budget.safeParse(budgetVal).success;
+    const selectedServices = Array.isArray(servicesVal) ? servicesVal : [];
+    const latestSelectedService = selectedServices[selectedServices.length - 1] ?? null;
+    const activeServicePrompt = getServiceFollowUpPrompt(latestSelectedService);
+    const activePrompts = selectedServices
+      .map((s) => getServiceFollowUpPrompt(s))
+      .filter((p): p is NonNullable<typeof p> => p !== null);
+    const challengeText = typeof challengeVal === "string" ? challengeVal : "";
+    const completedCount = [nameOk, emailOk, servicesOk, timelineOk, budgetOk].filter(Boolean).length;
+    return { nameOk, emailOk, servicesOk, timelineOk, budgetOk, selectedServices, latestSelectedService, activeServicePrompt, activePrompts, challengeText, completedCount };
+  }, [nameVal, emailVal, servicesVal, timelineVal, challengeVal, budgetVal]);
 
   useEffect(() => {
     setSelectedFollowUpChipId(null);

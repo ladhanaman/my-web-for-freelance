@@ -108,9 +108,10 @@ export default function HeroSection() {
   }, [])
 
   useEffect(() => {
+    const onResize = () => fit()
     document.fonts.ready.then(() => fit())
-    window.addEventListener("resize", () => fit())
-    return () => window.removeEventListener("resize", () => fit())
+    window.addEventListener("resize", onResize)
+    return () => window.removeEventListener("resize", onResize)
   }, [fit])
 
   const draw = useCallback((now: number) => {

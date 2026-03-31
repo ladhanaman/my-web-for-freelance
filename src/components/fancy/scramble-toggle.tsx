@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
 interface ScrambleToggleProps {
@@ -29,12 +29,15 @@ export default function ScrambleToggle({
   const rafRef   = useRef<number | null>(null)
   const phaseRef = useRef(0)
 
-  // Char pool: unique printable chars from both texts combined
-  const charPool = useRef(
-    [...new Set([...texts[0].split(""), ...texts[1].split("")])].filter(
-      (c) => c !== " "
-    )
+  // Char pool: unique printable chars from both texts combined — memoized so
+  // the Set/filter computation only runs when the texts prop actually changes
+  const charPoolValues = useMemo(
+    () => [...new Set([...texts[0].split(""), ...texts[1].split("")])].filter((c) => c !== " "),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [texts[0], texts[1]]
   )
+  const charPool = useRef(charPoolValues)
+  charPool.current = charPoolValues
 
   const trigger = () => {
     if (rafRef.current !== null) return
