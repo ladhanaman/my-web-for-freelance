@@ -364,6 +364,14 @@
   user-select: none;
 }
 
+/* ── Framescape collection images — start invisible so useAnimate can stagger them in.
+      Using a CSS class (not inline style) means server HTML is valid for crawlers;
+      Framer Motion overrides opacity via inline style after hydration. ── */
+.framescape-img {
+  opacity: 0;
+  will-change: opacity, transform;
+}
+
 /* ── Gallery page nav links (back / prev / next) ── */
 .gallery-nav-link {
   font-size: 0.68rem;

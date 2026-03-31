@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 import { motion, stagger, useAnimate, useMotionValue } from "motion/react"
+import Image from "next/image"
 import Link from "next/link"
 
 import Floating, { FloatingElement } from "@/components/fancy/image/parallax-floating"
@@ -191,20 +192,17 @@ function CollectionCard({
         }}
       >
         {collection.coverPhoto && (
-          <img
+          <Image
             src={collection.coverPhoto}
             alt={collection.name}
-            className="protected-media"
+            width={600}
+            height={600}
+            sizes="(max-width: 768px) 50vw, 300px"
+            className="protected-media framescape-img"
             draggable={false}
-            style={{ width: "100%", height: "auto", display: "block", opacity: 0 }}
+            style={{ width: "100%", height: "auto", display: "block" }}
             onContextMenu={preventMediaContextMenu}
             onDragStart={preventMediaDragStart}
-            onError={(e) => {
-              const img = e.currentTarget
-              img.style.display = "none"
-              const fallback = img.nextElementSibling as HTMLElement | null
-              if (fallback) fallback.style.display = "flex"
-            }}
           />
         )}
 

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
+import Image from "next/image"
 import Link from "next/link"
 import { motion } from "motion/react"
 
@@ -133,7 +134,7 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{
-            duration: hasStoredLayout ? 0 : 0.76,
+            duration: hasStoredLayout ? 0.28 : 0.76,
             ease: [0.76, 0, 0.36, 1],
           }}
         >
@@ -161,13 +162,15 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
                     onContextMenu={preventMediaContextMenu}
                     onDragStart={preventMediaDragStart}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={src}
                       alt={`${collection.name} photo ${i + 1}`}
-                      className="protected-media w-full h-auto pointer-events-none select-none block"
+                      width={600}
+                      height={600}
+                      sizes="(max-width: 768px) 100vw, 315px"
+                      className="protected-media pointer-events-none select-none block"
+                      style={{ width: "100%", height: "auto" }}
                       loading="lazy"
-                      decoding="async"
                       draggable={false}
                       onContextMenu={preventMediaContextMenu}
                       onDragStart={preventMediaDragStart}

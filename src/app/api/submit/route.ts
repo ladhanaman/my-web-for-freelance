@@ -6,8 +6,11 @@ const DB_TIMEOUT_MS = 8000;
 
 export async function POST(request: NextRequest) {
   if (!process.env.DATABASE_URL) {
-    console.warn("[submit] DATABASE_URL not set — skipping DB write");
-    return NextResponse.json({ success: true }, { status: 201 });
+    console.error("[submit] DATABASE_URL is not configured");
+    return NextResponse.json(
+      { error: "Database not configured" },
+      { status: 500 }
+    );
   }
 
   try {
