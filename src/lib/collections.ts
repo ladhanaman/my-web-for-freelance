@@ -48,6 +48,8 @@ export interface Collection {
    * Empty array renders placeholders.
    */
   photos: string[]
+  /** Dynamic heading for the gallery page */
+  galleryHeading: string
 }
 
 export const COLLECTIONS: Collection[] = [
@@ -55,6 +57,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "black-and-white",
     name: "Black & White",
     description: "Stripped to essentials",
+    galleryHeading: "shades of silence.",
     coverPhoto: "/photos/black-and-white/cover.webp",
     photos: [
       "/photos/black-and-white/2.webp",
@@ -76,6 +79,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "cowries",
     name: "Cowries",
     description: "Ocean's currency",
+    galleryHeading: "ocean's spare change.",
     coverPhoto: "/photos/cowries/cover.webp",
     photos: [
       "/photos/cowries/cover.webp",
@@ -95,6 +99,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "desert-soul",
     name: "Desert Soul",
     description: "The sweeping dunes",
+    galleryHeading: "oceans of sand.",
     coverPhoto: "/photos/desert-soul/cover.webp",
     photos: [
       "/photos/desert-soul/1.webp",
@@ -110,6 +115,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "framed-by-the-winds",
     name: "Framed By The Winds",
     description: "Wind-carved moments",
+    galleryHeading: "wind's timeless art.",
     coverPhoto: "/photos/framed-by-the-winds/cover.webp",
     photos: [
       "/photos/framed-by-the-winds/50.webp",
@@ -125,6 +131,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "ghoose",
     name: "Ghoose",
     description: "Flights of fancy",
+    galleryHeading: "wings in motion.",
     coverPhoto: "/photos/ghoose/cover.webp",
     photos: [
       "/photos/ghoose/1.webp",
@@ -140,6 +147,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "lost-boat",
     name: "Lost Boat",
     description: "Adrift in time",
+    galleryHeading: "sinking with style.",
     coverPhoto: "/photos/lost-boat/cover.webp",
     photos: [
       "/photos/lost-boat/1.webp",
@@ -153,6 +161,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "shimmering",
     name: "Shimmering",
     description: "Dancing reflections",
+    galleryHeading: "dancing on water.",
     coverPhoto: "/photos/shimmering/cover.webp",
     photos: [
       "/photos/shimmering/0.webp",
@@ -170,6 +179,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "sunny-day",
     name: "Sunny Day",
     description: "Basking in the light",
+    galleryHeading: "basking in light.",
     coverPhoto: "/photos/sunny-day/cover.webp",
     photos: [
       "/photos/sunny-day/06.webp",
@@ -189,6 +199,7 @@ export const COLLECTIONS: Collection[] = [
     slug: "broken-car",
     name: "Broken Car",
     description: "Rust and memories",
+    galleryHeading: "memories in rust.",
     coverPhoto: "/photos/broken-car/cover.webp",
     photos: [
       "/photos/broken-car/2.webp",

@@ -51,6 +51,7 @@ const errorCls = "text-xs text-red-400 mt-1";
 
 interface ContactFormProps {
   onSuccess: () => void;
+  onSubmitStart?: () => void;
   onCompletedChange?: (count: number) => void;
   onCatSignalChange?: (signal: OnekoCatFormSignal) => void;
 }
@@ -84,7 +85,7 @@ export type OnekoCatField =
 
 type SubmitState = "idle" | "submitting" | "success" | "error";
 
-export default function ContactForm({ onSuccess, onCompletedChange, onCatSignalChange }: ContactFormProps) {
+export default function ContactForm({ onSuccess, onSubmitStart, onCompletedChange, onCatSignalChange }: ContactFormProps) {
   const [submitting,  setSubmitting]  = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
@@ -182,6 +183,7 @@ export default function ContactForm({ onSuccess, onCompletedChange, onCatSignalC
   };
 
   const onSubmit = async (data: LeadFormData) => {
+    onSubmitStart?.();
     setSubmitting(true);
     setServerError(null);
     setSubmitState("submitting");

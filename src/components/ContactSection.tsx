@@ -1,11 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
 import ContactForm, { type OnekoCatFormSignal } from "@/components/ContactForm";
 import DirectEmailBox from "@/components/DirectEmailBox";
 import ProgressTracker from "@/components/ProgressTracker";
 import OnekoCat, { type OnekoCatMood } from "@/components/oneko-cat";
+import ShaderBackground from "@/components/ShaderBackground";
 import { SECTION_IDS } from "@/lib/collections";
 
 const PURR_VARIATIONS = [
@@ -39,9 +39,29 @@ const getDisplayName = (value: string): string | null => {
 };
 
 export default function ContactSection() {
+  type Phase = "form" | "shader" | "cat";
   const requiredFieldTotal = 5;
   const [completedCount, setCompletedCount] = useState(0);
-  const [submitted, setSubmitted] = useState(false);
+  const [phase, setPhase] = useState<Phase>("form");
+  const [showShader, setShowShader] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleWarpComplete = useCallback(() => {
+    setPhase("cat");
+
+    // Smooth scroll to the cat reveal during the shader's 1.5s fade-out
+    // This removes the abrupt visual jump caused by the DOM structure change
+    containerRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+
+    // Wait for the .anim-shader-out css cross-fade to complete
+    setTimeout(() => {
+      setShowShader(false);
+    }, 1500);
+  }, []);
+
   const [catSpeech, setCatSpeech] = useState<string | null>(null);
   const [catRestToken, setCatRestToken] = useState(0);
   const [catSignal, setCatSignal] = useState<OnekoCatFormSignal>({
@@ -291,74 +311,116 @@ export default function ContactSection() {
     return "idle";
   }, [catSignal, requiredFieldTotal]);
 
-  if (submitted) {
-    return (
-      <div className="anim-pop-in flex flex-col items-center justify-center rounded-2xl border border-[#2e2a25] bg-[#1c1916] p-12 sm:p-20 text-center gap-7 min-h-[420px]">
-        <div className="relative flex h-24 w-24 items-center justify-center">
-          <div
-            className="absolute inset-0 rounded-full anim-glow-pulse"
-            style={{ background: "radial-gradient(circle, rgba(192,117,72,0.25) 0%, transparent 70%)" }}
-          />
-          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#C07548]/15 ring-2 ring-[#C07548]/50">
-            <CheckCircle2 size={42} className="text-[#C07548]" />
+  return (
+    <div ref={containerRef} className="relative">
+      {showShader && (
+        <ShaderBackground
+          onWarpComplete={handleWarpComplete}
+          isFadingOut={phase === "cat"}
+        />
+      )}
+
+      {/* ── Section header and Grid — fades down and out smoothly during shader entry ── */}
+      {phase !== "cat" && (
+        <div className={phase === "shader" ? "opacity-0 pointer-events-none transition-opacity duration-1000 ease-out" : "duration-300 transition-opacity"}>
+          <header className="mb-12 text-center anim-fade-up" style={{ animationDelay: "0ms" }}>
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#C07548]">
+                Get Started
+              </span>
+              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
+            </div>
+            <h2 style={{
+              fontSize: "clamp(2.6rem, 5.2vw, 5rem)",
+              fontWeight: 800,
+              lineHeight: 1.08,
+              letterSpacing: "-0.04em",
+              color: "#f2ede8",
+            }}>
+              Let&apos;s Build What Matters
+            </h2>
+            <p className="mt-4 text-base text-[#8c7f74] sm:text-lg max-w-lg mx-auto leading-relaxed">
+              Bring the ambition. I&apos;ll handle the bottlenecks.
+            </p>
+          </header>
+
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[340px_1fr] lg:gap-10 xl:grid-cols-[370px_1fr]">
+
+            {/* ── LEFT COLUMN ── */}
+            <aside
+              className="flex h-full flex-col gap-5 anim-slide-left"
+              style={{ animationDelay: "180ms" }}
+            >
+              {/* Progress tracker */}
+              <ProgressTracker completed={completedCount} total={requiredFieldTotal} />
+
+              {/* Oneko card */}
+              <OnekoCat
+                className="min-h-[304px] sm:min-h-[335px] lg:min-h-[374px]"
+                mood={catMood}
+                message={catSpeech ?? ""}
+                showMessage={Boolean(catSpeech)}
+                onCatClick={handleCatClick}
+                restToken={catRestToken}
+              />
+
+              <DirectEmailBox />
+            </aside>
+
+            {/* ── RIGHT COLUMN ── */}
+            <section
+              className="anim-slide-right"
+              style={{ animationDelay: "240ms" }}
+            >
+              <ContactForm
+                onSubmitStart={() => {
+                  setPhase("shader");
+                  setShowShader(true); // Triggers shader mount
+                }}
+                onSuccess={() => { }} // Not needed, handled optimistically
+                onCompletedChange={setCompletedCount}
+                onCatSignalChange={handleCatSignalChange}
+              />
+            </section>
           </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-[#f2ede8] mb-3">
-            We&apos;ve received your message!
-          </h2>
-          <p className="text-[#8c7f74] max-w-sm leading-relaxed">
-            Expect a reply within 24 hours. You can also reach us at{" "}
-            <a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=ladhanaman2206@gmail.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#C07548] hover:text-[#d98a60] hover:underline transition-colors"
-            >
-              ladhanaman2206@gmail.com
-            </a>
-          </p>
+      )}
+
+      {/* ── The Cat Reveal (Mounts natively in Section flow instantly, filling the full screen) ── */}
+      {phase === "cat" && (
+        <div className="flex flex-col items-center justify-center min-h-[100vh] pb-[50vh] anim-pop-in">
+          {/* Success message header — provides context that the form is gone but the work has begun */}
+          <header className="mb-12 text-center anim-fade-up" style={{ animationDelay: "100ms" }}>
+            <div className="mb-4 flex items-center justify-center gap-3">
+              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
+              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#C07548]">
+                Mission Start
+              </span>
+              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
+            </div>
+            <h2 style={{
+              fontSize: "clamp(2.4rem, 4.8vw, 4.2rem)",
+              fontWeight: 800,
+              lineHeight: 1.08,
+              letterSpacing: "-0.04em",
+              color: "#f2ede8",
+            }}>
+              Transmission Received.
+            </h2>
+            <p className="mt-4 text-base text-[#8c7f74] sm:text-lg max-w-lg mx-auto leading-relaxed">
+              Brief is locked. I&apos;ll be in touch soon.
+            </p>
+          </header>
+
+          <OnekoCat
+            className="w-full max-w-[600px] min-h-[480px]"
+            mood="happy"
+            message="Time to build."
+            showMessage={true}
+          />
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[340px_1fr] lg:gap-10 xl:grid-cols-[370px_1fr]">
-
-      {/* ── LEFT COLUMN ── */}
-      <aside
-        className="flex h-full flex-col gap-5 anim-slide-left"
-        style={{ animationDelay: "180ms" }}
-      >
-        {/* Progress tracker */}
-        <ProgressTracker completed={completedCount} total={requiredFieldTotal} />
-
-        {/* Oneko card */}
-        <OnekoCat
-          className="min-h-[304px] sm:min-h-[335px] lg:min-h-[374px]"
-          mood={catMood}
-          message={catSpeech ?? ""}
-          showMessage={Boolean(catSpeech)}
-          onCatClick={handleCatClick}
-          restToken={catRestToken}
-        />
-
-        <DirectEmailBox />
-      </aside>
-
-      {/* ── RIGHT COLUMN ── */}
-      <section
-        className="anim-slide-right"
-        style={{ animationDelay: "240ms" }}
-      >
-        <ContactForm
-          onSuccess={() => setSubmitted(true)}
-          onCompletedChange={setCompletedCount}
-          onCatSignalChange={handleCatSignalChange}
-        />
-      </section>
-
+      )}
     </div>
   );
 }

@@ -1,12 +1,12 @@
-import ContactSection     from "@/components/ContactSection";
-import Framescape          from "@/components/Framescape";
-import GridBackground      from "@/components/GridBackground";
-import GunHeroClient       from "@/components/GunHeroClient";
-import HeroSection         from "@/components/HeroSection";
-import KairosFooter        from "@/components/KairosFooter";
-import LandingPageWrapper  from "@/components/LandingPageWrapper";
-import NavBar              from "@/components/NavBar";
-import { SECTION_IDS }    from "@/lib/collections";
+import ContactSection from "@/components/ContactSection";
+import Framescape from "@/components/Framescape";
+import GridBackground from "@/components/GridBackground";
+import GunHeroClient from "@/components/GunHeroClient";
+import HeroSection from "@/components/HeroSection";
+import KairosFooter from "@/components/KairosFooter";
+import LandingPageWrapper from "@/components/LandingPageWrapper";
+import NavBar from "@/components/NavBar";
+import { SECTION_IDS } from "@/lib/collections";
 
 export default function Home() {
   return (
@@ -67,33 +67,11 @@ export default function Home() {
           }}
         />
 
-        {/* ── Contact form section ── */}
+        {/* ── Contact + cat section ── */}
         <section
           id={SECTION_IDS.onekoCat}
-          className="relative z-10 mx-auto w-[94%] sm:w-[85%] lg:w-[75%] xl:w-[70%] 2xl:w-[65%] max-w-[1400px] py-12 sm:py-16 lg:py-20"
+          className="relative z-10 mx-auto w-[94%] sm:w-[85%] lg:w-[75%] xl:w-[70%] 2xl:w-[65%] max-w-[1400px] py-12 sm:py-16 lg:py-20 "
         >
-          <header className="mb-12 text-center anim-fade-up" style={{ animationDelay: "0ms" }}>
-            <div className="mb-4 flex items-center justify-center gap-3">
-              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
-              <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#C07548]">
-                Get Started
-              </span>
-              <div className="h-px w-10 sm:w-14 bg-[#C07548]/50" />
-            </div>
-            <h1 style={{
-              fontSize: "clamp(2.6rem, 5.2vw, 5rem)",
-              fontWeight: 800,
-              lineHeight: 1.08,
-              letterSpacing: "-0.04em",
-              color: "#f2ede8",
-            }}>
-              Let&apos;s Build What Matters
-            </h1>
-            <p className="mt-4 text-base text-[#8c7f74] sm:text-lg max-w-lg mx-auto leading-relaxed">
-              Bring the ambition. I&apos;ll handle the bottlenecks.
-            </p>
-          </header>
-
           <ContactSection />
         </section>
 

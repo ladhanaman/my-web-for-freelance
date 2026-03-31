@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -93,7 +94,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} ${fraunces.variable} h-full antialiased dark`}
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: INITIAL_SCROLL_RESET_SCRIPT }} />
+        <Script id="scroll-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: INITIAL_SCROLL_RESET_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
         {children}

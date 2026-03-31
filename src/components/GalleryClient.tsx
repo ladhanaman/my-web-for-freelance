@@ -79,6 +79,10 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
     }
   }, [collection.slug])
 
+  const headingWords = (collection.galleryHeading || "all your memories.").trim().split(" ")
+  const lastHeadingWord = headingWords.pop()
+  const restOfHeading = headingWords.length > 0 ? headingWords.join(" ") + " " : ""
+
   return (
     <section
       className="relative min-h-dvh overflow-hidden"
@@ -211,8 +215,8 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
               margin: 0,
             }}
           >
-            all your{" "}
-            <span style={{ fontWeight: 700, color: "#f2ede8" }}>memories.</span>
+            {restOfHeading}
+            <span style={{ fontWeight: 700, color: "#f2ede8" }}>{lastHeadingWord}</span>
           </h1>
 
           <p
@@ -224,7 +228,7 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
               textTransform: "uppercase",
             }}
           >
-            {collection.name} — {collection.description}
+            {collection.name} - Naman Ladha
           </p>
         </div>
       </div>
