@@ -13,16 +13,15 @@ function formatDate(isoDate: string): string {
     return "Unknown date";
   }
 
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const month = months[date.getUTCMonth()];
-  const day = date.getUTCDate();
-  const year = date.getUTCFullYear();
-  const rawHours = date.getUTCHours();
-  const minutes = String(date.getUTCMinutes()).padStart(2, "0");
-  const hour = rawHours % 12 || 12;
-  const period = rawHours >= 12 ? "PM" : "AM";
-
-  return `${month} ${day}, ${year} ${hour}:${minutes} ${period} UTC`;
+  // Use Intl for local formatting that handles the user's timezone (e.g., IST)
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(date);
 }
 
 function challengePreview(value: string): string {

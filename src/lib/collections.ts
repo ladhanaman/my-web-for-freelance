@@ -50,6 +50,12 @@ export interface Collection {
   photos: string[]
   /** Dynamic heading for the gallery page */
   galleryHeading: string
+  /**
+   * Native pixel height of the photos in this collection, measured at source width=2000.
+   * Used by GalleryClient to set the correct aspect-ratio hint on <Image> (prevents CLS).
+   * Defaults to 2000 (square) when not set.
+   */
+  photoAspectH: number
 }
 
 export const COLLECTIONS: Collection[] = [
@@ -58,6 +64,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Black & White",
     description: "Stripped to essentials",
     galleryHeading: "stripped to bone.",
+    photoAspectH: 2000,
     coverPhoto: "/photos/black-and-white/cover.webp",
     photos: [
       "/photos/black-and-white/2.webp",
@@ -80,6 +87,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Cowries",
     description: "Ocean's currency",
     galleryHeading: "ocean's spare change.",
+    photoAspectH: 2000,
     coverPhoto: "/photos/cowries/cover.webp",
     photos: [
       "/photos/cowries/cover.webp",
@@ -100,6 +108,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Desert Soul",
     description: "The sweeping dunes",
     galleryHeading: "sand never settles.",
+    photoAspectH: 1338,
     coverPhoto: "/photos/desert-soul/cover.webp",
     photos: [
       "/photos/desert-soul/1.webp",
@@ -116,6 +125,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Framed By The Winds",
     description: "Wind-carved moments",
     galleryHeading: "nothing but wind.",
+    photoAspectH: 1339,
     coverPhoto: "/photos/framed-by-the-winds/cover.webp",
     photos: [
       "/photos/framed-by-the-winds/50.webp",
@@ -132,6 +142,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Ghoose",
     description: "Flights of fancy",
     galleryHeading: "never looked back.",
+    photoAspectH: 1339,
     coverPhoto: "/photos/ghoose/cover.webp",
     photos: [
       "/photos/ghoose/1.webp",
@@ -148,6 +159,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Lost Boat",
     description: "Adrift in time",
     galleryHeading: "sinking with style.",
+    photoAspectH: 1339,
     coverPhoto: "/photos/lost-boat/cover.webp",
     photos: [
       "/photos/lost-boat/1.webp",
@@ -162,6 +174,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Shimmering",
     description: "Dancing reflections",
     galleryHeading: "dancing on water.",
+    photoAspectH: 1500,
     coverPhoto: "/photos/shimmering/cover.webp",
     photos: [
       "/photos/shimmering/0.webp",
@@ -180,6 +193,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Sunny Day",
     description: "Basking in the light",
     galleryHeading: "stay a while.",
+    photoAspectH: 1339,
     coverPhoto: "/photos/sunny-day/cover.webp",
     photos: [
       "/photos/sunny-day/06.webp",
@@ -200,6 +214,7 @@ export const COLLECTIONS: Collection[] = [
     name: "Broken Car",
     description: "Rust and memories",
     galleryHeading: "memories in rust.",
+    photoAspectH: 1339,
     coverPhoto: "/photos/broken-car/cover.webp",
     photos: [
       "/photos/broken-car/2.webp",

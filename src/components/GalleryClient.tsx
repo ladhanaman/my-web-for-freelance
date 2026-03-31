@@ -50,7 +50,14 @@ const buildPilePositions = (slug: string, count: number) =>
     rotate: (seededValue(slug, i, "r") - 0.5) * 34,
   }))
 
+// Bug fix: width=828 is the first Next.js deviceSize entry (≥640), so the srcset
+// now includes 640w/750w/828w entries — enough for 2× retina at 315px display.
+// imgH preserves the collection's true aspect ratio to prevent CLS before load.
+const IMG_W = 828
+
 export default function GalleryClient({ collection }: GalleryClientProps) {
+  const imgH = Math.round(IMG_W * collection.photoAspectH / 2000)
+
   const photos = useMemo(() => {
     // Remove the coverPhoto from the original list if it exists to avoid duplicates
     const otherPhotos = collection.photos.filter((p) => p !== collection.coverPhoto)
@@ -165,9 +172,9 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
                     <Image
                       src={src}
                       alt={`${collection.name} photo ${i + 1}`}
-                      width={600}
-                      height={600}
-                      sizes="(max-width: 768px) 100vw, 315px"
+                      width={IMG_W}
+                      height={imgH}
+                      sizes="(max-width: 767px) 285px, 315px"
                       className="protected-media pointer-events-none select-none block"
                       style={{ width: "100%", height: "auto" }}
                       loading="lazy"
