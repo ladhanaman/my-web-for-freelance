@@ -5,7 +5,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { AdminLeadFilters } from "@/lib/leads-admin-query";
 
-const DB_TIMEOUT_MS = 8000;
+const DB_TIMEOUT_MS = 15000;
 
 export interface AdminLeadListItem {
   id: string;
@@ -37,10 +37,11 @@ class LeadAdminQueryError extends Error {
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout>;
   return Promise.race([
-    promise,
+    promise.finally(() => clearTimeout(timer)),
     new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("DB timeout")), timeoutMs);
+      timer = setTimeout(() => reject(new Error("DB timeout")), timeoutMs);
     }),
   ]);
 }
