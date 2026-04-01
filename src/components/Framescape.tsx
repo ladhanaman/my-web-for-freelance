@@ -269,17 +269,33 @@ export default function Framescape() {
   const [hasBeenVisible, setHasBeenVisible] = useState(false)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [isNavigating, setIsNavigating] = useState(false)
+  const isNavigatingRef = useRef(false)
   const hasLocked = useRef(false)
   const [scope, animate] = useAnimate()
   const supportsFineHover = useFinePointer()
   const router = useRouter()
 
   const handleNavigate = useCallback((href: string) => {
+    if (isNavigatingRef.current) return
+    isNavigatingRef.current = true
     setIsNavigating(true)
+    
     // Let the images drift up slightly as they get swallowed by the shadows
     animate("img", { y: -15 }, { duration: 0.6, ease: [0.33, 1, 0.68, 1] })
     setTimeout(() => router.push(href), 600)
   }, [animate, router])
+
+  // ── Safeguard against bfcache (back button) keeping the screen black ──
+  useEffect(() => {
+    const handlePageShow = (e: PageTransitionEvent) => {
+      if (e.persisted) {
+        setIsNavigating(false)
+        isNavigatingRef.current = false
+      }
+    }
+    window.addEventListener("pageshow", handlePageShow)
+    return () => window.removeEventListener("pageshow", handlePageShow)
+  }, [])
 
   // ── 30 % visibility → trigger card animation (re-fires on every entry) ──
   useEffect(() => {
