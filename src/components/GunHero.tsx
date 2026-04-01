@@ -151,6 +151,13 @@ function ease(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2
 }
 
+// Exposes r3f invalidate() to the outer scroll handler via a ref
+function InvalidateBridge({ invalidateRef }: { invalidateRef: React.MutableRefObject<(() => void) | null> }) {
+  const { invalidate } = useThree()
+  useEffect(() => { invalidateRef.current = invalidate }, [invalidate, invalidateRef])
+  return null
+}
+
 // ─── 3-D gun ─────────────────────────────────────────────────────────────────
 function GunModel({ progress }: { progress: { current: number } }) {
   const { scene } = useGLTF(GUN_MODEL_PATH)
@@ -212,6 +219,13 @@ function GunModel({ progress }: { progress: { current: number } }) {
     group.current.rotation.y = cur.current.rotY
     group.current.scale.setScalar(cur.current.scale)
     group.current.position.x = cur.current.x
+
+    // Keep rendering until spring has fully settled
+    const stillMoving =
+      Math.abs(cur.current.rotY - tRotY) > 0.0001 ||
+      Math.abs(cur.current.scale - tScale) > 0.0001 ||
+      Math.abs(cur.current.x - tX) > 0.0001
+    if (stillMoving) state.invalidate()
   })
 
   return (
@@ -243,6 +257,7 @@ export default function GunHero() {
   const dividerRef = useRef<HTMLDivElement>(null)
   const manifestoRef = useRef<HTMLParagraphElement>(null)
   const scrollProgress = useRef<number>(0)
+  const invalidateRef = useRef<(() => void) | null>(null)
 
   const wordRefs = [word0Ref, word1Ref, word2Ref]
 
@@ -262,6 +277,8 @@ export default function GunHero() {
     const t          = animTravel > 0 ? Math.min(1, scrolled / animTravel) : 0
 
     scrollProgress.current = t
+    // Kick off the first frame for this scroll event (spring self-sustains after)
+    invalidateRef.current?.()
 
     // Scroll hint fades over the first 50% of hero scroll travel
     if (hintRef.current) {
@@ -347,8 +364,10 @@ export default function GunHero() {
             powerPreference: "high-performance",
           }}
           dpr={[1, 1.5]}
+          frameloop="demand"
           style={{ position: "absolute", inset: 0 }}
         >
+          <InvalidateBridge invalidateRef={invalidateRef} />
           <Suspense fallback={null}>
             {/* Warm terracotta key + fill lights */}
             <ambientLight intensity={0.4} color="#f2ede8" />
