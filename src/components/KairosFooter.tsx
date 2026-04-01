@@ -17,9 +17,9 @@ const NAV_LINKS = [
 ]
 
 const SOCIAL_LINKS = [
-  { label: "Github", href: "#" },
-  { label: "Instagram", href: "#" },
-  { label: "X (Twitter)", href: "#" },
+  { label: "Github", href: "https://github.com/ladhanaman" },
+  { label: "Instagram", href: "https://www.instagram.com/in__kairos" },
+  { label: "X (Twitter)", href: "https://x.com/NamanLadha27" },
 ]
 
 const LINK_STYLE: React.CSSProperties = {
@@ -85,6 +85,8 @@ export default function KairosFooter() {
               style={LINK_STYLE}
               onMouseEnter={handleLinkEnter}
               onMouseLeave={handleLinkLeave}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               {label}
             </a>
