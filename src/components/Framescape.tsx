@@ -276,8 +276,9 @@ export default function Framescape() {
 
   const handleNavigate = useCallback((href: string) => {
     setIsNavigating(true)
-    animate("img", { opacity: 0, y: -8 }, { duration: 0.22, ease: [0.76, 0, 0.36, 1] })
-    setTimeout(() => router.push(href), 220)
+    // Let the images drift up slightly as they get swallowed by the shadows
+    animate("img", { y: -15 }, { duration: 0.6, ease: [0.33, 1, 0.68, 1] })
+    setTimeout(() => router.push(href), 600)
   }, [animate, router])
 
   // ── 30 % visibility → trigger card animation (re-fires on every entry) ──
@@ -426,6 +427,20 @@ export default function Framescape() {
           blink. missed it.
         </h2>
       </motion.div>
+
+      {/* Cinematic fade to black veil */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: isNavigating ? 1 : 0 }}
+        transition={{ duration: 0.6, ease: [0.33, 1, 0.68, 1] }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "#100e0c",
+          zIndex: 100,
+          pointerEvents: isNavigating ? "all" : "none",
+        }}
+      />
     </section>
   )
 }

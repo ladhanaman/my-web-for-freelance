@@ -95,14 +95,25 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
   // images never re-fire and the overlay gets permanently stuck. The 2 s timer
   // alone is sufficient — images render into the DOM under the overlay and are
   // fully loaded long before the shader dissolves.
+  const [shaderVisible, setShaderVisible] = useState(false)
   const [overlayDone, setOverlayDone] = useState(false)
   const [overlayMounted, setOverlayMounted] = useState(true)
 
   useEffect(() => {
+    setShaderVisible(false)
     setOverlayDone(false)
     setOverlayMounted(true)
-    const id = setTimeout(() => setOverlayDone(true), 700)
-    return () => clearTimeout(id)
+    
+    // The screen arrived black from Framescape. Allow a moment, then fade in the shader lines.
+    const timer1 = setTimeout(() => setShaderVisible(true), 150)
+    
+    // After they've glowed for a bit, fade the entire black overlay + shader out to reveal the gallery.
+    const timer2 = setTimeout(() => setOverlayDone(true), 1100)
+    
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+    }
   }, [collection.slug])
 
   const headingWords = (collection.galleryHeading || "all your memories.").trim().split(" ")
@@ -302,7 +313,14 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
             if (overlayDone) setOverlayMounted(false)
           }}
         >
-          <ShaderAnimation />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: shaderVisible ? 1 : 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            style={{ width: "100%", height: "100%" }}
+          >
+            <ShaderAnimation />
+          </motion.div>
         </motion.div>
       )}
     </section>
