@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { motion } from "motion/react"
+import { ShaderAnimation } from "@/components/ui/shader-lines"
 
 import type { Collection } from "@/lib/collections"
 import { GALLERY_BASE_PATH } from "@/lib/collections"
@@ -88,6 +89,22 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
     }
   }, [collection.slug])
 
+  // ── Shader overlay: shows every visit, lifts after 2 s ──────────────────────
+  // Image-load counting was removed: onLoad fires once per element lifetime but
+  // React Strict Mode double-runs the effect and resets the counter, so cached
+  // images never re-fire and the overlay gets permanently stuck. The 2 s timer
+  // alone is sufficient — images render into the DOM under the overlay and are
+  // fully loaded long before the shader dissolves.
+  const [overlayDone, setOverlayDone] = useState(false)
+  const [overlayMounted, setOverlayMounted] = useState(true)
+
+  useEffect(() => {
+    setOverlayDone(false)
+    setOverlayMounted(true)
+    const id = setTimeout(() => setOverlayDone(true), 700)
+    return () => clearTimeout(id)
+  }, [collection.slug])
+
   const headingWords = (collection.galleryHeading || "all your memories.").trim().split(" ")
   const lastHeadingWord = headingWords.pop()
   const restOfHeading = headingWords.length > 0 ? headingWords.join(" ") + " " : ""
@@ -100,29 +117,30 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
       <GridBackground alwaysActive />
 
       {/* ── Back breadcrumb ─────────────────────────────────────── */}
-      <Link
-        href={FRAMESCAPE_HREF}
-        style={{
-          position: "absolute",
-          top: "1.5rem",
-          left: "1.75rem",
-          zIndex: 50,
-          fontSize: "0.68rem",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          color: "#8c7f74",
-          textDecoration: "none",
-        }}
-        className="gallery-nav-link"
+      <motion.div
+        style={{ position: "absolute", top: "1.5rem", left: "1.75rem", zIndex: 50 }}
+        animate={overlayDone ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.5, delay: overlayDone ? 0.4 : 0, ease: "easeOut" }}
       >
-        ← FRAMESCAPE
-      </Link>
+        <Link
+          href={FRAMESCAPE_HREF}
+          style={{
+            fontSize: "0.68rem",
+            letterSpacing: "0.12em",
+            textTransform: "uppercase",
+            color: "#8c7f74",
+            textDecoration: "none",
+          }}
+          className="gallery-nav-link"
+        >
+          ← FRAMESCAPE
+        </Link>
+      </motion.div>
 
       {/* ── Ambient warm glow behind the pile (pure CSS, no JS) ─── */}
-      <div
+      <motion.div
         className="pointer-events-none absolute"
         style={{
-          // Glow is positioned to sit just behind/beneath the pile cluster
           top: "18%",
           left: "5%",
           width: "480px",
@@ -132,88 +150,88 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
           filter: "blur(80px)",
           zIndex: 1,
         }}
+        animate={overlayDone ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 1.0, delay: overlayDone ? 0.2 : 0, ease: "easeOut" }}
       />
 
       {/* ── Drag canvas — fills full viewport, z:10 ─────────────── */}
       <motion.div
-          className="absolute inset-0"
-          style={{ zIndex: 10 }}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: hasStoredLayout ? 0.28 : 0.76,
-            ease: [0.76, 0, 0.36, 1],
-          }}
-        >
-          {photos.length > 0 ? (
-            <DragElements
-              initialPositions={positions}
-              selectedOnTop
-              storageKey={`gallery-drag-${collection.slug}`}
-              className="h-full w-full"
-            >
-              {photos.map((src, i) => (
-                <motion.div
-                  key={`${collection.slug}-${i}`}
-                  className="flex items-start justify-center rounded-[2px] shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
-                  style={{
-                    width: i === photos.length - 1
-                      ? "clamp(250px, 30vw, 315px)"
-                      : "clamp(245px, 28vw, 285px)",
-                    padding: "0",
-                  }}
+        className="absolute inset-0"
+        style={{ zIndex: 10 }}
+        animate={overlayDone ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+        transition={{ duration: 0.7, ease: "easeInOut" }}
+      >
+        {photos.length > 0 ? (
+          <DragElements
+            initialPositions={positions}
+            selectedOnTop
+            storageKey={`gallery-drag-${collection.slug}`}
+            className="h-full w-full"
+          >
+            {photos.map((src, i) => (
+              <motion.div
+                key={`${collection.slug}-${i}`}
+                className="flex items-start justify-center rounded-[2px] shadow-[0_24px_60px_rgba(0,0,0,0.18)]"
+                style={{
+                  width: i === photos.length - 1
+                    ? "clamp(250px, 30vw, 315px)"
+                    : "clamp(245px, 28vw, 285px)",
+                  padding: "0",
+                }}
+              >
+                <div
+                  className="protected-media relative overflow-hidden bg-[#f4f1ec]"
+                  style={{ width: "100%" }}
+                  onContextMenu={preventMediaContextMenu}
+                  onDragStart={preventMediaDragStart}
                 >
-                  <div
-                    className="protected-media relative overflow-hidden bg-[#f4f1ec]"
-                    style={{ width: "100%" }}
+                  <Image
+                    src={src}
+                    alt={`${collection.name} photo ${i + 1}`}
+                    width={IMG_W}
+                    height={imgH}
+                    sizes="(max-width: 767px) 285px, 315px"
+                    className="protected-media pointer-events-none select-none block"
+                    style={{ width: "100%", height: "auto" }}
+                    loading="lazy"
+                    draggable={false}
                     onContextMenu={preventMediaContextMenu}
                     onDragStart={preventMediaDragStart}
-                  >
-                    <Image
-                      src={src}
-                      alt={`${collection.name} photo ${i + 1}`}
-                      width={IMG_W}
-                      height={imgH}
-                      sizes="(max-width: 767px) 285px, 315px"
-                      className="protected-media pointer-events-none select-none block"
-                      style={{ width: "100%", height: "auto" }}
-                      loading="lazy"
-                      draggable={false}
-                      onContextMenu={preventMediaContextMenu}
-                      onDragStart={preventMediaDragStart}
-                    />
-                  </div>
-                </motion.div>
-              ))}
-            </DragElements>
-          ) : (
-            /* ── Empty collection placeholder ── */
-            <div className="flex h-full w-full items-center justify-center">
-              <div className="text-center" style={{ color: "#b5aa9e" }}>
-                <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
-                  ✦
+                  />
                 </div>
-                <div
-                  style={{
-                    fontSize: "0.72rem",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  Coming Soon
-                </div>
+              </motion.div>
+            ))}
+          </DragElements>
+        ) : (
+          /* ── Empty collection placeholder ── */
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="text-center" style={{ color: "#b5aa9e" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>
+                ✦
+              </div>
+              <div
+                style={{
+                  fontSize: "0.72rem",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Coming Soon
               </div>
             </div>
-          )}
-        </motion.div>
+          </div>
+        )}
+      </motion.div>
 
       {/* ── Right-side headline text (pointer-events-none, z:20) ── */}
-      <div
+      <motion.div
         className="pointer-events-none absolute inset-0 flex flex-col items-end justify-center"
         style={{
           zIndex: 20,
           paddingRight: "clamp(2rem, 8vw, 6rem)",
         }}
+        animate={overlayDone ? { opacity: 1, x: 0 } : { opacity: 0, x: 20 }}
+        transition={{ duration: 0.7, delay: overlayDone ? 0.3 : 0, ease: [0.76, 0, 0.36, 1] }}
       >
         <div className="text-right">
           <h1
@@ -242,16 +260,18 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
             {collection.name} - Naman Ladha
           </p>
         </div>
-      </div>
+      </motion.div>
 
       {/* ── Bottom bar: count (pointer-events-auto, z:30) ── */}
-      <div
+      <motion.div
         className="pointer-events-auto absolute bottom-0 left-0 right-0 flex items-center justify-center"
         style={{
           zIndex: 30,
           padding: "1.25rem 1.75rem",
           borderTop: "1px solid rgba(192,117,72,0.10)",
         }}
+        animate={overlayDone ? { opacity: 1 } : { opacity: 0 }}
+        transition={{ duration: 0.5, delay: overlayDone ? 0.5 : 0, ease: "easeOut" }}
       >
         <span
           style={{
@@ -263,7 +283,28 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
         >
           {String(photos.length).padStart(2, "0")} photographs
         </span>
-      </div>
+      </motion.div>
+
+      {/* ── Shader overlay — full screen, lifts after 2 s + images loaded ── */}
+      {overlayMounted && (
+        <motion.div
+          initial={{ opacity: 1 }}
+          animate={{ opacity: overlayDone ? 0 : 1 }}
+          transition={{ duration: 0.9, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 90,
+            background: "#100e0c",
+            pointerEvents: overlayDone ? "none" : "all",
+          }}
+          onAnimationComplete={() => {
+            if (overlayDone) setOverlayMounted(false)
+          }}
+        >
+          <ShaderAnimation />
+        </motion.div>
+      )}
     </section>
   )
 }

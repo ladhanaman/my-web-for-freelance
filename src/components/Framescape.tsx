@@ -3,6 +3,7 @@
 import {
   type PointerEvent as ReactPointerEvent,
   type MouseEvent as ReactMouseEvent,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -10,6 +11,7 @@ import {
 import { motion, stagger, useAnimate, useMotionValue } from "motion/react"
 import Image from "next/image"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import Floating, { FloatingElement } from "@/components/fancy/image/parallax-floating"
 import { useFinePointer } from "@/hooks/use-fine-pointer"
@@ -61,31 +63,16 @@ interface CollectionCardProps {
   supportsFineHover: boolean
   isActive: boolean
   onHoverChange: (slug: string | null) => void
+  onNavigate: (href: string) => void
 }
 
-function preserveFramescapeReturnTarget(event: ReactMouseEvent<HTMLAnchorElement>) {
-  if (
-    event.defaultPrevented ||
-    event.button !== 0 ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.shiftKey ||
-    event.altKey
-  ) {
-    return
-  }
-
-  // Guard: skip if already at the target to prevent stale state accumulation
-  if (window.location.pathname + window.location.hash === FRAMESCAPE_HREF) return
-
-  window.history.replaceState(null, "", FRAMESCAPE_HREF)
-}
 
 function CollectionCard({
   collection,
   supportsFineHover,
   isActive,
   onHoverChange,
+  onNavigate,
 }: CollectionCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const glyphRef = useRef<HTMLSpanElement>(null)
@@ -158,11 +145,22 @@ function CollectionCard({
     onHoverChange(null)
   }
 
+  const href = `${GALLERY_BASE_PATH}/${collection.slug}`
+
+  const handleClick = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+    e.preventDefault()
+    if (window.location.pathname + window.location.hash !== FRAMESCAPE_HREF) {
+      window.history.replaceState(null, "", FRAMESCAPE_HREF)
+    }
+    onNavigate(href)
+  }
+
   return (
     <Link
-      href={`${GALLERY_BASE_PATH}/${collection.slug}`}
+      href={href}
       className="collection-card protected-media"
-      onClick={preserveFramescapeReturnTarget}
+      onClick={handleClick}
       onContextMenu={preventMediaContextMenu}
       onDragStart={preventMediaDragStart}
       onPointerEnter={handlePointerEnter}
@@ -270,9 +268,17 @@ export default function Framescape() {
   const [isVisible, setIsVisible] = useState(false)
   const [hasBeenVisible, setHasBeenVisible] = useState(false)
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
   const hasLocked = useRef(false)
   const [scope, animate] = useAnimate()
   const supportsFineHover = useFinePointer()
+  const router = useRouter()
+
+  const handleNavigate = useCallback((href: string) => {
+    setIsNavigating(true)
+    animate("img", { opacity: 0, y: -8 }, { duration: 0.22, ease: [0.76, 0, 0.36, 1] })
+    setTimeout(() => router.push(href), 220)
+  }, [animate, router])
 
   // ── 30 % visibility → trigger card animation (re-fires on every entry) ──
   useEffect(() => {
@@ -374,6 +380,7 @@ export default function Framescape() {
                     supportsFineHover={supportsFineHover}
                     isActive={isActive}
                     onHoverChange={setActiveSlug}
+                    onNavigate={handleNavigate}
                   />
                 </div>
               </FloatingElement>
@@ -385,11 +392,11 @@ export default function Framescape() {
       {/* Section title — centered, rendered above floating cards */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
-        animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
+        animate={isNavigating ? { opacity: 0 } : isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
         transition={{
-          duration: isVisible ? 0.65 : hasBeenVisible ? 0.45 : 0,
-          delay: isVisible ? 2.1 : 0,
-          ease: isVisible ? "easeOut" : "easeIn",
+          duration: isNavigating ? 0.22 : isVisible ? 0.65 : hasBeenVisible ? 0.45 : 0,
+          delay: isVisible && !isNavigating ? 2.1 : 0,
+          ease: isNavigating ? [0.76, 0, 0.36, 1] : isVisible ? "easeOut" : "easeIn",
         }}
         style={{
           position: "absolute",
