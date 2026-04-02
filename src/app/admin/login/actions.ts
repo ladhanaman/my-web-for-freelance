@@ -8,8 +8,8 @@ import {
   ADMIN_SESSION_MAX_AGE_SECONDS,
   createAdminSessionToken,
   getAdminAuthConfigurationError,
-  getAdminPassword,
   isAdminGateEnabled,
+  isAdminPasswordMatch,
 } from "@/lib/admin-auth";
 
 export interface AdminLoginState {
@@ -46,13 +46,12 @@ export async function adminLoginAction(
   }
 
   const submittedPassword = String(formData.get("password") ?? "").trim();
-  const expectedPassword = getAdminPassword();
 
   if (!submittedPassword) {
     return { error: "Enter the admin password." };
   }
 
-  if (submittedPassword !== expectedPassword) {
+  if (!isAdminPasswordMatch(submittedPassword)) {
     return { error: "Invalid admin password." };
   }
 

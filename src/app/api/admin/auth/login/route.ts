@@ -5,8 +5,8 @@ import {
   ADMIN_SESSION_MAX_AGE_SECONDS,
   createAdminSessionToken,
   getAdminAuthConfigurationError,
-  getAdminPassword,
   isAdminGateEnabled,
+  isAdminPasswordMatch,
 } from "@/lib/admin-auth";
 
 interface LoginBody {
@@ -31,10 +31,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const expectedPassword = getAdminPassword();
   const submittedPassword = body.password?.trim();
 
-  if (!submittedPassword || submittedPassword !== expectedPassword) {
+  if (!submittedPassword || !isAdminPasswordMatch(submittedPassword)) {
     return NextResponse.json({ error: "Invalid admin password." }, { status: 401 });
   }
 

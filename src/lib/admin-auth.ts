@@ -12,8 +12,24 @@ interface AdminSessionPayload {
   v: number;
 }
 
+function normalizeAdminEnvValue(value: string | undefined): string {
+  const trimmedValue = (value ?? "").trim();
+  const firstChar = trimmedValue.at(0);
+  const lastChar = trimmedValue.at(-1);
+
+  if (
+    trimmedValue.length >= 2 &&
+    firstChar === lastChar &&
+    (firstChar === '"' || firstChar === "'")
+  ) {
+    return trimmedValue.slice(1, -1);
+  }
+
+  return trimmedValue;
+}
+
 function getAdminSessionSecret(): string {
-  return process.env.ADMIN_SESSION_SECRET ?? "";
+  return normalizeAdminEnvValue(process.env.ADMIN_SESSION_SECRET);
 }
 
 function isAdminSessionPayload(value: unknown): value is AdminSessionPayload {
@@ -96,7 +112,7 @@ async function verifyValue(value: string, signature: string): Promise<boolean> {
 }
 
 export function isAdminGateEnabled(): boolean {
-  return Boolean(process.env.ADMIN_PASSWORD);
+  return Boolean(getAdminPassword());
 }
 
 export function isAdminSessionConfigured(): boolean {
@@ -115,7 +131,11 @@ export function getAdminAuthConfigurationError(): string | null {
 }
 
 export function getAdminPassword(): string {
-  return process.env.ADMIN_PASSWORD ?? "";
+  return normalizeAdminEnvValue(process.env.ADMIN_PASSWORD);
+}
+
+export function isAdminPasswordMatch(submittedPassword: string): boolean {
+  return submittedPassword === getAdminPassword();
 }
 
 export async function createAdminSessionToken(): Promise<string> {
