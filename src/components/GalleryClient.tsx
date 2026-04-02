@@ -204,7 +204,8 @@ export default function GalleryClient({ collection }: GalleryClientProps) {
                     sizes="(max-width: 767px) 285px, 315px"
                     className="protected-media pointer-events-none select-none block"
                     style={{ width: "100%", height: "auto" }}
-                    loading="lazy"
+                    priority={i === photos.length - 1}
+                    loading={i === photos.length - 1 ? "eager" : "lazy"}
                     draggable={false}
                     onContextMenu={preventMediaContextMenu}
                     onDragStart={preventMediaDragStart}
