@@ -264,15 +264,15 @@ const WORDS = [
 export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const hintRef = useRef<HTMLDivElement>(null)
-  const word0Ref = useRef<HTMLSpanElement>(null)
-  const word1Ref = useRef<HTMLSpanElement>(null)
-  const word2Ref = useRef<HTMLSpanElement>(null)
+  const wordRefs = [
+    useRef<HTMLSpanElement>(null),
+    useRef<HTMLSpanElement>(null),
+    useRef<HTMLSpanElement>(null),
+  ] as const
   const dividerRef = useRef<HTMLDivElement>(null)
   const manifestoRef = useRef<HTMLParagraphElement>(null)
   const scrollProgress = useRef<number>(0)
   const invalidateRef = useRef<(() => void) | null>(null)
-
-  const wordRefs = [word0Ref, word1Ref, word2Ref]
 
   // Inline helper: map t into a 0→1 progress within [start, end]
   const progress = (t: number, start: number, end: number) =>
@@ -322,7 +322,7 @@ export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
       manifestoRef.current.style.transform = `translateY(${(1 - mp) * 18}px)`
     }
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- wordRefs is a stable array of stable refs; adding it would re-create onScroll every render for no reason
   }, [])
 
   useEffect(() => {

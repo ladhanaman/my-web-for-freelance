@@ -59,8 +59,6 @@ export function ShaderAnimation() {
               43758.5453123);
       }
 
-      varying vec2 vUv;
-
       void main(void) {
         vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
 
