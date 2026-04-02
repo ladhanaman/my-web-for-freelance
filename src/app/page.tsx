@@ -7,8 +7,11 @@ import KairosFooter from "@/components/KairosFooter";
 import LandingPageWrapper from "@/components/LandingPageWrapper";
 import NavBar from "@/components/NavBar";
 import { SECTION_IDS } from "@/lib/collections";
+import { getHdrAssetSrc } from "@/lib/hdr-asset";
 
-export default function Home() {
+export default async function Home() {
+  const hdrSrc = await getHdrAssetSrc()
+
   return (
     <>
       {/* ── Black placeholder — server-rendered instantly, hides home until LandingPage mounts ── */}
@@ -43,7 +46,7 @@ export default function Home() {
 
         {/* ── Screen 2: Gun ── */}
         <div id={SECTION_IDS.gun} style={{ height: "200vh" }}>
-          <GunHeroClient />
+          <GunHeroClient hdrSrc={hdrSrc} />
         </div>
 
         {/* ── Screen 3: Framescape photography ── */}

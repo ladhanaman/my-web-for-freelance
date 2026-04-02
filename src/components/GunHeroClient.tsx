@@ -5,6 +5,10 @@ import dynamic from "next/dynamic"
 
 const GunHero = dynamic(() => import("./GunHero"), { ssr: false })
 
-export default function GunHeroClient() {
-  return <GunHero />
+interface GunHeroClientProps {
+  hdrSrc: string
+}
+
+export default function GunHeroClient({ hdrSrc }: GunHeroClientProps) {
+  return <GunHero hdrSrc={hdrSrc} />
 }

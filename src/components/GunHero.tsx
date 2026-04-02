@@ -17,7 +17,7 @@ import { useGLTF, Environment } from "@react-three/drei"
 import { RGBELoader } from "three-stdlib"
 import * as THREE from "three"
 import { setConsoleFunction } from "three"
-import { resolveHdrAsset } from "@/lib/hdr-cache"
+import { invalidateHdrAsset, persistHdrAsset, resolveHdrAsset } from "@/lib/hdr-cache"
 
 // r3f v9 constructs THREE.Clock internally; three.js r183 deprecated it.
 // The built warn() already prepends 'THREE.' before calling setConsoleFunction,
@@ -71,7 +71,7 @@ class SceneErrorBoundary extends Component<SceneErrorBoundaryProps, SceneErrorBo
   }
 }
 
-function CachedEnvironmentMap() {
+function CachedEnvironmentMap({ hdrSrc }: { hdrSrc: string }) {
   const [environmentSrc, setEnvironmentSrc] = useState<string | null>(null)
   const [environmentMap, setEnvironmentMap] = useState<THREE.DataTexture | null>(null)
 
@@ -103,30 +103,43 @@ function CachedEnvironmentMap() {
     }
 
     const loadEnvironment = async () => {
-      const resolved = await resolveHdrAsset()
+      try {
+        const resolved = await resolveHdrAsset(hdrSrc)
 
-      if (!isActive) return
+        if (!isActive) return
 
-      if (resolved.kind === "cached" && resolved.blob) {
-        try {
-          const texture = await buildTextureFromBlob(resolved.blob)
+        if (resolved.kind !== "url") {
+          try {
+            const texture = await buildTextureFromBlob(resolved.blob)
 
-          if (!isActive) {
-            texture.dispose()
+            if (!isActive) {
+              texture.dispose()
+              return
+            }
+
+            activeTexture = texture
+            setEnvironmentMap(texture)
+            setEnvironmentSrc(null)
+
+            if (resolved.kind === "fetched") {
+              void persistHdrAsset(hdrSrc, resolved.blob).catch(() => {
+                // Ignore cache persistence failures; the parsed texture is already in use.
+              })
+            }
+
             return
+          } catch {
+            void invalidateHdrAsset(hdrSrc).catch(() => {
+              // Ignore cache invalidation failures; the scene will fall back to the direct URL.
+            })
           }
-
-          activeTexture = texture
-          setEnvironmentMap(texture)
-          setEnvironmentSrc(null)
-          return
-        } catch {
-          // Fall back to the direct HDR URL if cached blob parsing fails.
         }
+      } catch {
+        // Fall through to the direct HDR URL fallback below.
       }
 
       setEnvironmentMap(null)
-      setEnvironmentSrc(resolved.src)
+      setEnvironmentSrc(hdrSrc)
     }
 
     void loadEnvironment()
@@ -135,7 +148,7 @@ function CachedEnvironmentMap() {
       isActive = false
       activeTexture?.dispose()
     }
-  }, [])
+  }, [hdrSrc])
 
   if (environmentMap) {
     return <Environment map={environmentMap} />
@@ -248,7 +261,7 @@ const WORDS = [
 ] as const
 
 // ─── Full hero section ────────────────────────────────────────────────────────
-export default function GunHero() {
+export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const hintRef = useRef<HTMLDivElement>(null)
   const word0Ref = useRef<HTMLSpanElement>(null)
@@ -388,7 +401,7 @@ export default function GunHero() {
             />
             <GunModel progress={scrollProgress} />
             <SceneErrorBoundary>
-              <CachedEnvironmentMap />
+              <CachedEnvironmentMap hdrSrc={hdrSrc} />
             </SceneErrorBoundary>
           </Suspense>
         </Canvas>

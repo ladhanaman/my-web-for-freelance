@@ -1,25 +1,25 @@
-export const HDR_ASSET_PATH = "/env/dikhololo_night_1k.hdr"
-
-const HDR_CACHE_KEY = HDR_ASSET_PATH
-const HDR_CACHE_VERSION = "v1"
-const HDR_CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
+import { HDR_ASSET_PATH } from "@/lib/hdr-asset-config"
 
 const HDR_CACHE_DB_NAME = "kairos-hdr-cache"
 const HDR_CACHE_DB_VERSION = 1
 const HDR_CACHE_STORE_NAME = "assets"
 const HDR_METADATA_STORAGE_KEY = "kairos-hdr-cache-meta"
+const LEGACY_HDR_CACHE_KEY = HDR_ASSET_PATH
 
 interface HdrCacheMetadata {
-  expiresAt: number
   key: string
-  version: string
 }
 
-export interface ResolvedHdrAsset {
-  kind: "cached" | "url"
-  blob?: Blob
-  src: string
-}
+export type ResolvedHdrAsset =
+  | {
+      kind: "cached" | "fetched"
+      blob: Blob
+      src: string
+    }
+  | {
+      kind: "url"
+      src: string
+    }
 
 function isBrowserCacheAvailable(): boolean {
   return (
@@ -34,11 +34,11 @@ function isHdrCacheMetadata(value: unknown): value is HdrCacheMetadata {
   if (!value || typeof value !== "object") return false
 
   const candidate = value as Partial<HdrCacheMetadata>
-  return (
-    candidate.key === HDR_CACHE_KEY &&
-    candidate.version === HDR_CACHE_VERSION &&
-    typeof candidate.expiresAt === "number"
-  )
+  return typeof candidate.key === "string" && candidate.key.length > 0
+}
+
+function getCacheKey(src: string): string {
+  return src
 }
 
 function readMetadata(): HdrCacheMetadata | null {
@@ -53,14 +53,9 @@ function readMetadata(): HdrCacheMetadata | null {
   }
 }
 
-function writeMetadata(): void {
+function writeMetadata(key: string): void {
   try {
-    const metadata: HdrCacheMetadata = {
-      key: HDR_CACHE_KEY,
-      version: HDR_CACHE_VERSION,
-      expiresAt: Date.now() + HDR_CACHE_TTL_MS,
-    }
-
+    const metadata: HdrCacheMetadata = { key }
     window.localStorage.setItem(HDR_METADATA_STORAGE_KEY, JSON.stringify(metadata))
   } catch {
     // Ignore metadata write failures; the runtime will simply skip persistence.
@@ -73,10 +68,6 @@ function clearMetadata(): void {
   } catch {
     // Ignore metadata cleanup failures.
   }
-}
-
-function hasFreshMetadata(metadata: HdrCacheMetadata | null): metadata is HdrCacheMetadata {
-  return metadata !== null && metadata.expiresAt > Date.now()
 }
 
 function isValidHdrBlob(blob: Blob | null): blob is Blob {
@@ -196,46 +187,64 @@ function deleteBlobFromIndexedDb(key: string): Promise<void> {
   })
 }
 
-async function readCachedHdrAsset(): Promise<ResolvedHdrAsset | null> {
+async function deleteCacheKeys(keys: string[]): Promise<void> {
+  await Promise.all(
+    [...new Set(keys.filter(Boolean))].map(async (key) => {
+      try {
+        await deleteBlobFromIndexedDb(key)
+      } catch {
+        // Ignore cache cleanup failures.
+      }
+    })
+  )
+}
+
+async function syncCacheKey(expectedKey: string): Promise<void> {
   const metadata = readMetadata()
-  if (!hasFreshMetadata(metadata)) {
-    clearMetadata()
+  const legacyKeys = expectedKey === LEGACY_HDR_CACHE_KEY ? [] : [LEGACY_HDR_CACHE_KEY]
 
-    try {
-      await deleteBlobFromIndexedDb(HDR_CACHE_KEY)
-    } catch {
-      // Ignore stale blob cleanup failures.
-    }
-
-    return null
+  if (!metadata) {
+    await deleteCacheKeys(legacyKeys)
+    return
   }
 
+  if (metadata.key === expectedKey) {
+    await deleteCacheKeys(legacyKeys)
+    return
+  }
+
+  clearMetadata()
+  await deleteCacheKeys([metadata.key, ...legacyKeys])
+}
+
+async function readCachedHdrAsset(src: string): Promise<ResolvedHdrAsset | null> {
+  const key = getCacheKey(src)
+
+  await syncCacheKey(key)
+
+  const metadata = readMetadata()
+  if (!metadata || metadata.key !== key) return null
+
   try {
-    const blob = await readBlobFromIndexedDb(HDR_CACHE_KEY)
+    const blob = await readBlobFromIndexedDb(key)
     if (isValidHdrBlob(blob)) {
       return {
         kind: "cached",
         blob,
-        src: HDR_ASSET_PATH,
+        src,
       }
     }
   } catch {
-    // Fall through to stale-cache cleanup below.
+    // Fall through to cache cleanup below.
   }
 
   clearMetadata()
-
-  try {
-    await deleteBlobFromIndexedDb(HDR_CACHE_KEY)
-  } catch {
-    // Ignore stale blob cleanup failures.
-  }
-
+  await deleteCacheKeys([key])
   return null
 }
 
-async function refreshHdrCache(): Promise<void> {
-  const response = await window.fetch(HDR_ASSET_PATH)
+async function fetchHdrAsset(src: string): Promise<ResolvedHdrAsset> {
+  const response = await window.fetch(src)
   if (!response.ok) {
     throw new Error(`Failed to fetch HDR asset: ${response.status}`)
   }
@@ -245,25 +254,54 @@ async function refreshHdrCache(): Promise<void> {
     throw new Error("Fetched HDR asset blob is empty.")
   }
 
-  try {
-    await writeBlobToIndexedDb(HDR_CACHE_KEY, blob)
-    writeMetadata()
-  } catch {
-    clearMetadata()
+  return {
+    kind: "fetched",
+    blob,
+    src,
   }
 }
 
-export async function resolveHdrAsset(): Promise<ResolvedHdrAsset> {
+export async function resolveHdrAsset(src: string): Promise<ResolvedHdrAsset> {
   if (!isBrowserCacheAvailable()) {
-    return { kind: "url", src: HDR_ASSET_PATH }
+    return { kind: "url", src }
   }
 
-  const cached = await readCachedHdrAsset()
-  if (cached) return cached
+  try {
+    const cached = await readCachedHdrAsset(src)
+    if (cached) return cached
 
-  void refreshHdrCache().catch(() => {
-    // Ignore background cache warm-up failures; the scene will use the direct HDR URL.
-  })
+    return await fetchHdrAsset(src)
+  } catch {
+    return { kind: "url", src }
+  }
+}
 
-  return { kind: "url", src: HDR_ASSET_PATH }
+export async function persistHdrAsset(src: string, blob: Blob): Promise<void> {
+  if (!isBrowserCacheAvailable() || !isValidHdrBlob(blob)) return
+
+  const key = getCacheKey(src)
+  const previousMetadata = readMetadata()
+
+  try {
+    await writeBlobToIndexedDb(key, blob)
+    writeMetadata(key)
+
+    if (previousMetadata && previousMetadata.key !== key) {
+      await deleteCacheKeys([previousMetadata.key, LEGACY_HDR_CACHE_KEY])
+    } else if (key !== LEGACY_HDR_CACHE_KEY) {
+      await deleteCacheKeys([LEGACY_HDR_CACHE_KEY])
+    }
+  } catch {
+    clearMetadata()
+    await deleteCacheKeys([key])
+  }
+}
+
+export async function invalidateHdrAsset(src: string): Promise<void> {
+  if (!isBrowserCacheAvailable()) return
+
+  const metadata = readMetadata()
+  clearMetadata()
+
+  await deleteCacheKeys([getCacheKey(src), metadata?.key ?? "", LEGACY_HDR_CACHE_KEY])
 }
