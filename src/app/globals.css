@@ -357,9 +357,8 @@
   box-shadow: 0 0 0 1px rgba(192, 117, 72, 0.44), 0 16px 40px rgba(0, 0, 0, 0.42);
 }
 
-/* ── Global image protection: disable drag, pointer right-click ── */
+/* ── Global image protection: disable drag & selection (clicks still work) ── */
 img {
-  pointer-events: none;
   -webkit-user-drag: none;
   user-drag: none;
   -webkit-touch-callout: none;
