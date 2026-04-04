@@ -159,7 +159,7 @@ function CollectionCard({
   return (
     <Link
       href={href}
-      className="collection-card protected-media"
+      className="collection-card"
       onClick={handleClick}
       onContextMenu={preventMediaContextMenu}
       onDragStart={preventMediaDragStart}

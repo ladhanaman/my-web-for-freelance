@@ -365,7 +365,8 @@ img {
   user-select: none;
 }
 
-/* ── Scoped media hardening for gallery/Framescape assets ── */
+/* ── Scoped media hardening for gallery/Framescape assets.
+      This disables hit-testing, so keep it off interactive wrappers like <a>. ── */
 .protected-media {
   -webkit-touch-callout: none;
   -webkit-user-drag: none;
