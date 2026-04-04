@@ -167,7 +167,10 @@ class AnimationController {
       const x = (this.viewZoom * position.x) / dotDepthFromCamera
       const y = (this.viewZoom * position.y) / dotDepthFromCamera
       const cameraBoost = 1.0 + t2 * 1.8  // 1× at rest → 2.8× as camera fully travels in
-      const sw = (900 * sizeFactor * cameraBoost) / dotDepthFromCamera
+      // Responsive: tie dot size to canvas dimensions so stars scale correctly
+      // across all display sizes (mobile → desktop → 4K).  0.9 × size keeps the
+      // same visual density as the original 900 constant on a ~1000 px canvas.
+      const sw = (this.size * 0.9 * sizeFactor * cameraBoost) / dotDepthFromCamera
 
       this.ctx.lineWidth = sw
       this.ctx.beginPath()
