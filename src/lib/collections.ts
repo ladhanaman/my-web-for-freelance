@@ -117,7 +117,6 @@ export const COLLECTIONS: Collection[] = [
       "/photos/desert-soul/5.webp",
       "/photos/desert-soul/6.webp",
       "/photos/desert-soul/7.webp",
-      "/photos/desert-soul/54.webp",
     ],
   },
   {
@@ -222,6 +221,7 @@ export const COLLECTIONS: Collection[] = [
       "/photos/broken-car/4.webp",
       "/photos/broken-car/5.webp",
       "/photos/broken-car/6.webp",
+      "/photos/broken-car/54.webp",
     ],
   },
 ]

@@ -33,7 +33,12 @@
       "Bash(ls .env*)",
       "Bash(find src:*)",
       "Bash(identify /Users/naman/Desktop/Projects/my-web/public/photos/black-and-white/2.webp)",
-      "Bash(du -sh /Users/naman/Desktop/Projects/my-web/public/photos/*/*.webp)"
+      "Bash(du -sh /Users/naman/Desktop/Projects/my-web/public/photos/*/*.webp)",
+      "Bash(ls:*)",
+      "Bash(brew install:*)",
+      "Bash(pandoc --version)",
+      "Bash(pip3 install:*)",
+      "Bash(pandoc:*)"
     ]
   }
 }

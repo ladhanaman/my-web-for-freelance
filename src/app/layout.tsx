@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import localFont from "next/font/local";
@@ -62,6 +62,13 @@ export const metadata: Metadata = {
   description: "Tell us what you're building and we'll show you how AI can accelerate it.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 const INITIAL_SCROLL_RESET_SCRIPT = `
   (() => {
     try {
@@ -85,6 +92,31 @@ const INITIAL_SCROLL_RESET_SCRIPT = `
   })();
 `;
 
+const DISABLE_ZOOM_SCRIPT = `
+  (() => {
+    // Block Ctrl/Cmd + scroll wheel zoom
+    document.addEventListener('wheel', function(e) {
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    // Block Ctrl/Cmd + Plus / Minus / Zero keyboard zoom
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && ['+', '-', '=', '_', '0'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // Block right-click context menu on images
+    document.addEventListener('contextmenu', function(e) {
+      if (e.target && e.target.tagName === 'IMG') {
+        e.preventDefault();
+      }
+    });
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -97,6 +129,7 @@ export default function RootLayout({
     >
       <head>
         <Script id="scroll-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: INITIAL_SCROLL_RESET_SCRIPT }} />
+        <Script id="disable-zoom" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: DISABLE_ZOOM_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
         {children}
