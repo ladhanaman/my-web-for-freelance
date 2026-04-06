@@ -38,7 +38,12 @@
       "Bash(brew install:*)",
       "Bash(pandoc --version)",
       "Bash(pip3 install:*)",
-      "Bash(pandoc:*)"
+      "Bash(pandoc:*)",
+      "Bash(kill 17153)",
+      "mcp__chrome-devtools__puppeteer_navigate",
+      "mcp__chrome-devtools__puppeteer_screenshot",
+      "mcp__chrome-devtools__puppeteer_click",
+      "mcp__chrome-devtools__puppeteer_evaluate"
     ]
   }
 }

@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import localFont from "next/font/local";
 import Script from "next/script";
+import { RootClientProviders } from "@/components/RootClientProviders";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -132,7 +133,9 @@ export default function RootLayout({
         <Script id="disable-zoom" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: DISABLE_ZOOM_SCRIPT }} />
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
+        <RootClientProviders>
+          {children}
+        </RootClientProviders>
         <Analytics />
         <SpeedInsights sampleRate={0.5} />
       </body>

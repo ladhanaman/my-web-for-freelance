@@ -271,6 +271,7 @@ export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
   ] as const
   const dividerRef = useRef<HTMLDivElement>(null)
   const manifestoRef = useRef<HTMLParagraphElement>(null)
+  const pressBAnchorRef = useRef<HTMLDivElement>(null)
   const scrollProgress = useRef<number>(0)
   const invalidateRef = useRef<(() => void) | null>(null)
 
@@ -320,6 +321,13 @@ export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
     if (manifestoRef.current) {
       manifestoRef.current.style.opacity = String(mp)
       manifestoRef.current.style.transform = `translateY(${(1 - mp) * 18}px)`
+    }
+
+    // "Press B" cue — appears when animation completes (t > 0.90)
+    const pressBProgress = progress(t, 0.90, 1.0)
+    if (pressBAnchorRef.current) {
+      pressBAnchorRef.current.style.opacity = String(pressBProgress)
+      pressBAnchorRef.current.style.transform = `translateY(${(1 - pressBProgress) * 12}px)`
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps -- wordRefs is a stable array of stable refs; adding it would re-create onScroll every render for no reason
@@ -478,6 +486,23 @@ export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
           >
             Built for businesses that can&apos;t afford to miss.
           </p>
+
+          {/* Press B cue — appears when gun animation completes */}
+          <div
+            ref={pressBAnchorRef}
+            style={{
+              marginTop: "3rem",
+              fontSize: "clamp(0.85rem, 1.2vw, 1rem)",
+              color: "#A7EF9E",
+              letterSpacing: "0.06em",
+              opacity: 0,
+              transform: "translateY(12px)",
+              fontFamily: "var(--font-geist-mono)",
+              textTransform: "uppercase",
+            }}
+          >
+            Press B for the parallax into virtual world.
+          </div>
 
         </div>
 
