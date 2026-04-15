@@ -31,6 +31,7 @@ export type ExperienceAction =
   | { type: 'RESPONSE_CHAT'; assistantMessage: ChatMessage }
   | { type: 'RESPONSE_RECOMMEND'; assistantMessage: ChatMessage; matches: RankedPoem[]; matchCycleId: string | null }
   | { type: 'SUBMIT_FAILED'; error: string }
+  | { type: 'SUBMIT_SILENT' }
   | { type: 'LOADER_COMPLETE' }
   | { type: 'OPEN_POEM'; poemId: string }
   | { type: 'BACK_FROM_POEM' }
@@ -92,6 +93,10 @@ export function experienceReducer(
 
     case 'SUBMIT_FAILED':
       return { ...base, phase: 'error', error: action.error }
+
+    case 'SUBMIT_SILENT':
+      // Groq was unreachable — silently return to chatting without an assistant message
+      return { ...base, phase: 'chatting' }
 
     case 'LOADER_COMPLETE':
       if (state.phase !== 'awaiting_loader') return state

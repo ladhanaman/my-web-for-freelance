@@ -4,6 +4,9 @@ import type { ChatMessage, IntentSnapshot } from './types'
 const GREETING_ONLY_PATTERN =
   /^(?:hi|hii+|hello|hey|heyy+|yo|sup|hola)(?:\s+there)?[!.,\s]*$/i
 
+const DEFLECTION_ONLY_PATTERN =
+  /^(nothing|idk|i (don'?t|dont) know|no|nope|not sure|dunno|maybe|ok+|fine|whatever|any(thing)?|not really|yeah|yep|sure|hm+|eh|meh|i guess|idc|doesn'?t matter|hard to say)[\s.,!?]*$/i
+
 const buildRecentTranscript = (history: ChatMessage[]) =>
   history
     .slice(-6)
@@ -24,17 +27,23 @@ const normalizeReply = (value: unknown) =>
 export const isGreetingOnlyMessage = (message: string) => GREETING_ONLY_PATTERN.test(message.trim())
 
 const FALLBACK_REPLIES = [
-  "What's sitting with you right now?",
-  "What kind of feeling are you in?",
-  "What does tonight feel like for you?",
   "What's the weight of it — heavy, soft, somewhere in between?",
-  "What are you carrying right now?",
+  "What kind of feeling are you sitting with?",
+  "Is it something with more quiet to it, or more weight?",
+  "Tell me something small about it — even the texture is enough.",
+  "What does tonight feel like for you?",
+]
+
+const DEFLECTION_FALLBACK_REPLIES = [
+  "That's okay. Something soft and quiet, or something with a bit more to it?",
+  "Hard to name sometimes. Should I just find something that fits a still moment?",
+  "No pressure. Soft or heavy — which direction?",
 ]
 
 const GREETING_FALLBACKS = [
-  "Hey. What's on your mind?",
-  "Hey. What are you feeling right now?",
-  "Hey. What kind of night is it?",
+  "Hey. What are you in the mood for tonight?",
+  "Hey. What's sitting with you right now?",
+  "Hey. What kind of feeling brought you here?",
 ]
 
 const pickRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)]!
@@ -42,6 +51,10 @@ const pickRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)
 export const buildFallbackFollowUpReply = (message: string) => {
   if (isGreetingOnlyMessage(message)) {
     return pickRandom(GREETING_FALLBACKS)
+  }
+
+  if (DEFLECTION_ONLY_PATTERN.test(message.trim())) {
+    return pickRandom(DEFLECTION_FALLBACK_REPLIES)
   }
 
   return pickRandom(FALLBACK_REPLIES)

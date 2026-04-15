@@ -18,12 +18,12 @@ export function ParallaxMessageList({ messages, isSubmitting = false }: Parallax
   const isEmpty = messages.length === 0 && !isSubmitting
 
   return (
-    <div className="flex max-h-[44vh] min-h-[220px] flex-col gap-0 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+    <div className="flex max-h-[32vh] min-h-[160px] flex-col gap-0 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
       {isEmpty && (
         <div className="flex flex-1 flex-col justify-center py-8">
-          <p className="font-mono text-[0.8rem] text-[#8feaa2]/35">~ awaiting input.</p>
-          <p className="mt-1 font-mono text-[0.7rem] text-[#8feaa2]/18">
-            ~ describe what you&apos;re feeling, the archive listens.
+          <p className="font-mono text-[0.8rem] text-[#8feaa2]/50">tell me what you&apos;re feeling.</p>
+          <p className="mt-1.5 font-mono text-[0.72rem] text-[#8feaa2]/28">
+            I&apos;ll find a poem from Naman&apos;s archive.
           </p>
         </div>
       )}

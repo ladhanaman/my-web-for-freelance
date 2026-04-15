@@ -1,6 +1,8 @@
 'use client'
 
 import { useEffect, useReducer, useRef, useState } from 'react'
+import { motion } from 'motion/react'
+import { useParallax } from '@/context/ParallaxContext'
 import { ParallaxComposer } from '@/components/parallax/ParallaxComposer'
 import { ParallaxLoaderOverlay } from '@/components/parallax/ParallaxLoaderOverlay'
 import { ParallaxMatchCards } from '@/components/parallax/ParallaxMatchCards'
@@ -39,6 +41,7 @@ const collectClientMetadata = (): ClientMetadata => {
 }
 
 export function ParallaxExperience() {
+  const { transitionPhase } = useParallax()
   const [state, dispatch] = useReducer(experienceReducer, INITIAL_EXPERIENCE_STATE)
   const [draft, setDraft] = useState('')
 
@@ -90,7 +93,7 @@ export function ParallaxExperience() {
 
     const sessionId = getOrCreateSessionId()
     const userMessage = createChatMessage('user', content)
-    const nextHistory = [...state.messages, userMessage].slice(-12)
+    const nextHistory = [...state.messages, userMessage].filter(m => m.content.trim()).slice(-12)
 
     setDraft('')
     dispatch({ type: 'SUBMIT_START', userMessage })
@@ -116,6 +119,13 @@ export function ParallaxExperience() {
       }
 
       const result = payload as ParallaxChatResponse
+
+      // Groq unreachable — stay silent, no assistant bubble
+      if (!result.reply.trim()) {
+        dispatch({ type: 'SUBMIT_SILENT' })
+        return
+      }
+
       const assistantMessage = createChatMessage('assistant', result.reply)
 
       if (result.nextAction === 'recommend') {
@@ -184,13 +194,22 @@ export function ParallaxExperience() {
         />
       ) : null}
 
-      <section className="relative z-10 flex min-h-screen items-center justify-center px-3 py-4 sm:px-5 sm:py-6">
+      <section className="relative z-10 flex min-h-screen items-center justify-center px-4 py-16 sm:px-8 sm:py-20">
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
           <div className="absolute left-[8%] top-[16%] h-44 w-44 rounded-full bg-[#78d58e]/10 blur-3xl" />
           <div className="absolute bottom-[12%] right-[10%] h-56 w-56 rounded-full bg-[#78d58e]/8 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto w-full max-w-[70rem]">
+        <motion.div
+          className="relative mx-auto w-full max-w-[54rem]"
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.9,
+            delay: transitionPhase === 'entering' ? 0.52 : 0,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+        >
           <div className="pointer-events-none absolute -inset-2 rounded-[34px] bg-[radial-gradient(circle_at_top,rgba(143,234,162,0.1),transparent_35%),radial-gradient(circle_at_bottom,rgba(143,234,162,0.06),transparent_35%)] blur-2xl" />
 
           <div className="relative overflow-hidden rounded-[30px] border border-[#8feaa2]/12 bg-[linear-gradient(180deg,rgba(7,13,10,0.82),rgba(7,11,9,0.72))] shadow-[0_24px_90px_rgba(0,0,0,0.42)] backdrop-blur-xl">
@@ -206,7 +225,7 @@ export function ParallaxExperience() {
             <header className="relative border-b border-[#8feaa2]/10 px-5 py-5 text-center sm:px-8 sm:py-6">
               <p className="font-mono text-[0.63rem] tracking-[0.35em] text-[#63a670] uppercase">Parallax</p>
               <h1 className="mt-2 font-[var(--font-fraunces)] text-[2rem] leading-[1.05] text-[#edffee] sm:text-[2.6rem]">
-                A terminal for <span className="text-[#93ebb0]">poem hunting.</span><span className="animate-pulse text-[#78d58e]">_</span>
+                A terminal for <span className="text-[#93ebb0]">poem hunting.</span>
               </h1>
               <div className="mt-3 flex items-center justify-center gap-3 font-mono text-[0.6rem] tracking-[0.14em] text-[#3d6648] uppercase sm:gap-4">
                 <span className="flex items-center gap-1.5">
@@ -215,8 +234,6 @@ export function ParallaxExperience() {
                 </span>
                 <span className="text-[#2d4a35]">·</span>
                 <span>{PARALLAX_POEM_COUNT} poems indexed</span>
-                <span className="text-[#2d4a35]">·</span>
-                <span>Session active</span>
               </div>
             </header>
 
@@ -268,7 +285,7 @@ export function ParallaxExperience() {
               </aside>
             </div>
           </div>
-        </div>
+        </motion.div>
       </section>
     </>
   )

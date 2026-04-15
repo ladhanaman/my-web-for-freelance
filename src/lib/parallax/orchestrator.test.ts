@@ -14,27 +14,28 @@ const createIntent = (overrides: Partial<IntentSnapshot>): IntentSnapshot => ({
   ...overrides,
 })
 
-test('recommends poems for a single hopeful fallback signal', () => {
+test('recommends poems when Groq provides a confident signal', () => {
   const result = buildParallaxChatTurnFromIntent(
-    { excludedPoemIds: [] },
+    { excludedPoemIds: [], message: 'feeling something soft tonight', history: [] },
     createIntent({
-      moods: ['hopeful'],
-      confidence: 0.32,
-      source: 'deterministic',
+      moods: ['soft', 'hopeful'],
+      confidence: 0.45,
+      source: 'groq',
     }),
   )
 
   assert.equal(result.nextAction, 'recommend')
   assert.equal(result.showLoader, true)
-  assert.equal(result.matches.length >= 1, true)
+  assert.ok(result.matches.length >= 1)
 })
 
-test('recommends poems for a short-length-only fallback prompt', () => {
+test('recommends short poems when deterministic finds mood + length signal', () => {
   const result = buildParallaxChatTurnFromIntent(
-    { excludedPoemIds: [] },
+    { excludedPoemIds: [], message: 'something short and soft', history: [] },
     createIntent({
+      moods: ['soft'],
       desiredLength: 'short',
-      confidence: 0.2,
+      confidence: 0.44,
       source: 'deterministic',
     }),
   )
@@ -45,7 +46,7 @@ test('recommends poems for a short-length-only fallback prompt', () => {
 
 test('keeps follow-up mode when there is no usable signal', () => {
   const result = buildParallaxChatTurnFromIntent(
-    { excludedPoemIds: [] },
+    { excludedPoemIds: [], message: 'just browsing', history: [] },
     createIntent({
       confidence: 0.1,
       source: 'deterministic',
@@ -55,4 +56,20 @@ test('keeps follow-up mode when there is no usable signal', () => {
   assert.equal(result.nextAction, 'ask_followup')
   assert.equal(result.matches.length, 0)
   assert.equal(result.showLoader, false)
+})
+
+test('recommends after repeated deflection (2+ turns)', () => {
+  const history = [
+    { id: '1', role: 'user' as const, content: 'nothing', createdAt: '' },
+    { id: '2', role: 'assistant' as const, content: 'Soft or heavy?', createdAt: '' },
+    { id: '3', role: 'user' as const, content: 'idk', createdAt: '' },
+    { id: '4', role: 'assistant' as const, content: 'No pressure.', createdAt: '' },
+  ]
+  const result = buildParallaxChatTurnFromIntent(
+    { excludedPoemIds: [], message: 'nothing', history },
+    createIntent({ confidence: 0.1, source: 'deterministic' }),
+  )
+
+  assert.equal(result.nextAction, 'recommend')
+  assert.ok(result.matches.length >= 1)
 })

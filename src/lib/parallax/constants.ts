@@ -31,7 +31,7 @@ export const DOT_LOADER_FRAMES: number[][] = [
   [14, 6, 13, 20, 9, 7, 21],
 ]
 
-export const MINIMUM_MATCH_LOADER_MS = 2000
+export const MINIMUM_MATCH_LOADER_MS = 4000
 export const DOT_LOADER_FRAME_DURATION_MS = 130
 export const DOT_LOADER_REPEAT_COUNT = Math.max(
   1,

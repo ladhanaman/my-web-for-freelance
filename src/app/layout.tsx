@@ -128,11 +128,9 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${pressStart.variable} ${fraunces.variable} h-full antialiased dark`}
     >
-      <head>
+      <body className="min-h-full flex flex-col">
         <Script id="scroll-reset" strategy="beforeInteractive" dangerouslySetInnerHTML={{ __html: INITIAL_SCROLL_RESET_SCRIPT }} />
         <Script id="disable-zoom" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: DISABLE_ZOOM_SCRIPT }} />
-      </head>
-      <body className="min-h-full flex flex-col">
         <RootClientProviders>
           {children}
         </RootClientProviders>
