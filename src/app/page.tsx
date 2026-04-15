@@ -3,6 +3,7 @@ import Framescape from "@/components/Framescape";
 import GridBackground from "@/components/GridBackground";
 import GunHeroClient from "@/components/GunHeroClient";
 import HeroSection from "@/components/HeroSection";
+import HomeReturnRestore from "@/components/HomeReturnRestore";
 import KairosFooter from "@/components/KairosFooter";
 import LandingPageWrapper from "@/components/LandingPageWrapper";
 import NavBar from "@/components/NavBar";
@@ -25,6 +26,8 @@ export default async function Home() {
           pointerEvents: 'none',
         }}
       />
+
+      <HomeReturnRestore />
 
       {/* ── Landing splash — fixed overlay, exits on "Open" click ── */}
       <LandingPageWrapper />

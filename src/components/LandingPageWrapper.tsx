@@ -3,6 +3,7 @@
 import { useEffect, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
 import { LANDING_DISMISSED_SESSION_KEY } from '@/lib/home-entry'
+import { PARALLAX_RETURN_SCROLL_KEY } from '@/lib/parallax/navigation'
 
 // dynamic + ssr:false must live in a Client Component — not a Server Component
 const LandingPage = dynamic(() => import('@/components/LandingPage'), { ssr: false })
@@ -51,14 +52,18 @@ function getClientSnapshot() {
   const hasHash = hash.length > 1
 
   let isDismissed = false
+  let hasParallaxReturnScroll = false
   try {
     isDismissed = window.sessionStorage.getItem(LANDING_DISMISSED_SESSION_KEY) === '1'
+    hasParallaxReturnScroll = window.sessionStorage.getItem(PARALLAX_RETURN_SCROLL_KEY) !== null
   } catch {
     isDismissed = false
+    hasParallaxReturnScroll = false
   }
 
   return JSON.stringify({
     hash,
+    shouldHoldPlaceholder: hasParallaxReturnScroll,
     shouldRenderOverlay: !hasHash && !isDismissed,
   })
 }
@@ -66,12 +71,16 @@ function getClientSnapshot() {
 export default function LandingPageWrapper() {
   const snapshot = useSyncExternalStore(subscribe, getClientSnapshot, getServerSnapshot)
   const isResolved = snapshot !== 'pending'
-  const { hash, shouldRenderOverlay } = isResolved
-    ? (JSON.parse(snapshot) as { hash: string; shouldRenderOverlay: boolean })
-    : { hash: '', shouldRenderOverlay: false }
+  const { hash, shouldHoldPlaceholder, shouldRenderOverlay } = isResolved
+    ? (JSON.parse(snapshot) as {
+        hash: string
+        shouldHoldPlaceholder: boolean
+        shouldRenderOverlay: boolean
+      })
+    : { hash: '', shouldHoldPlaceholder: false, shouldRenderOverlay: false }
 
   useEffect(() => {
-    if (!isResolved || shouldRenderOverlay) return
+    if (!isResolved || shouldRenderOverlay || shouldHoldPlaceholder) return
 
     hidePlaceholder()
 
@@ -81,7 +90,7 @@ export default function LandingPageWrapper() {
         scrollToHashTarget(targetId)
       }
     }
-  }, [hash, isResolved, shouldRenderOverlay])
+  }, [hash, isResolved, shouldHoldPlaceholder, shouldRenderOverlay])
 
   const handleReady = () => {
     hidePlaceholder()

@@ -23,3 +23,52 @@ model Lead {
   @@index([email])
   @@index([createdAt])
 }
+
+model ParallaxSession {
+  id             String               @id
+  userAgent      String?
+  language       String?
+  timezone       String?
+  platform       String?
+  viewportWidth  Int?
+  viewportHeight Int?
+  screenWidth    Int?
+  screenHeight   Int?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  chatTurns      ParallaxChatTurn[]
+  matchCycles    ParallaxMatchCycle[]
+
+  @@index([updatedAt])
+}
+
+model ParallaxMatchCycle {
+  id            String             @id @default(cuid())
+  sessionId     String
+  promptMessage String
+  assistantReply String
+  rankedPoemIds String[]
+  selectedPoemId String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  session       ParallaxSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  chatTurns     ParallaxChatTurn[]
+
+  @@index([sessionId, createdAt])
+}
+
+model ParallaxChatTurn {
+  id            String              @id @default(cuid())
+  sessionId     String
+  matchCycleId  String?
+  userMessage   String
+  assistantReply String
+  intent        Json?
+  nextAction    String
+  createdAt     DateTime            @default(now())
+  session       ParallaxSession     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  matchCycle    ParallaxMatchCycle? @relation(fields: [matchCycleId], references: [id], onDelete: SetNull)
+
+  @@index([sessionId, createdAt])
+  @@index([matchCycleId])
+}

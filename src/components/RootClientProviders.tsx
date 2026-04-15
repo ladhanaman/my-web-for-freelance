@@ -1,14 +1,14 @@
 'use client'
 
 import { ReactNode } from 'react'
-import { BlogProvider } from '@/context/BlogContext'
-import { BlogTransition } from '@/components/BlogTransition'
+import { ParallaxProvider } from '@/context/ParallaxContext'
+import { ParallaxTransition } from '@/components/ParallaxTransition'
 
 export function RootClientProviders({ children }: { children: ReactNode }) {
   return (
-    <BlogProvider>
+    <ParallaxProvider>
       {children}
-      <BlogTransition />
-    </BlogProvider>
+      <ParallaxTransition />
+    </ParallaxProvider>
   )
 }

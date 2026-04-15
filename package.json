@@ -8,6 +8,7 @@
     "db:migrate": "prisma migrate deploy",
     "validate:collections": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/validate-collections-assets.ts",
     "test:admin-auth": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test src/lib/admin-auth.test.ts",
+    "test:parallax": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types --test src/lib/parallax/intent.test.ts src/lib/parallax/orchestrator.test.ts",
     "photos:optimize": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/optimize-photos.ts",
     "photos:optimize:dry": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --experimental-strip-types scripts/optimize-photos.ts --dry-run",
     "start": "next start",
