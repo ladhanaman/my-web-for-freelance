@@ -3,6 +3,22 @@ import { prisma } from '@/lib/db'
 import { handleParallaxChatTurn } from '@/lib/parallax/orchestrator'
 import { parallaxChatRequestSchema } from '@/lib/parallax/schema'
 
+// Simple in-memory rate limiter: 10 requests per IP per minute
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+const RATE_LIMIT_MAX = 10
+const RATE_LIMIT_WINDOW_MS = 60_000
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now()
+  const entry = rateLimitMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
+    return false
+  }
+  entry.count++
+  return entry.count > RATE_LIMIT_MAX
+}
+
 async function persistChatTurn(input: {
   sessionId: string
   metadata: {
@@ -68,6 +84,11 @@ async function persistChatTurn(input: {
 }
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   try {
     const body = await request.json()
     const validated = parallaxChatRequestSchema.safeParse(body)

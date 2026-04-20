@@ -4,6 +4,21 @@ const IMMUTABLE_CACHE_CONTROL = "public, max-age=31536000, immutable";
 
 const securityHeaders = [
   {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https://images.unsplash.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://vitals.vercel-insights.com https://va.vercel-scripts.com",
+      "media-src 'self'",
+      "worker-src blob:",
+      "frame-src 'none'",
+      "object-src 'none'",
+    ].join("; "),
+  },
+  {
     key: "X-Content-Type-Options",
     value: "nosniff",
   },
