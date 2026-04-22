@@ -55,7 +55,9 @@
       "Bash(npm audit *)",
       "Bash(python3 -c \"from PIL import Image; print\\('PIL available'\\)\")",
       "Bash(python3 *)",
-      "Bash(open *)"
+      "Bash(open *)",
+      "Bash(grep -E '\\\\.\\(tsx|ts\\)$')",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web ls-files public/env/)"
     ]
   }
 }

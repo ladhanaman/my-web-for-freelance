@@ -14,7 +14,6 @@ import {
 } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useGLTF, Environment } from "@react-three/drei"
-import { RGBELoader } from "three-stdlib"
 import * as THREE from "three"
 import { setConsoleFunction } from "three"
 import { invalidateHdrAsset, persistHdrAsset, resolveHdrAsset } from "@/lib/hdr-cache"
@@ -73,34 +72,10 @@ class SceneErrorBoundary extends Component<SceneErrorBoundaryProps, SceneErrorBo
 
 function CachedEnvironmentMap({ hdrSrc }: { hdrSrc: string }) {
   const [environmentSrc, setEnvironmentSrc] = useState<string | null>(null)
-  const [environmentMap, setEnvironmentMap] = useState<THREE.DataTexture | null>(null)
 
   useEffect(() => {
     let isActive = true
-    let activeTexture: THREE.DataTexture | null = null
-
-    const buildTextureFromBlob = async (blob: Blob) => {
-      const buffer = await blob.arrayBuffer()
-      const loader = new RGBELoader()
-      const parsed = loader.parse(buffer)
-      const texture = new THREE.DataTexture(
-        parsed.data,
-        parsed.width,
-        parsed.height,
-        THREE.RGBAFormat,
-        parsed.type
-      )
-
-      texture.colorSpace = THREE.LinearSRGBColorSpace
-      texture.flipY = true
-      texture.generateMipmaps = false
-      texture.magFilter = THREE.LinearFilter
-      texture.minFilter = THREE.LinearFilter
-      texture.mapping = THREE.EquirectangularReflectionMapping
-      texture.needsUpdate = true
-
-      return texture
-    }
+    let objectUrl: string | null = null
 
     const loadEnvironment = async () => {
       try {
@@ -109,36 +84,26 @@ function CachedEnvironmentMap({ hdrSrc }: { hdrSrc: string }) {
         if (!isActive) return
 
         if (resolved.kind !== "url") {
-          try {
-            const texture = await buildTextureFromBlob(resolved.blob)
+          objectUrl = URL.createObjectURL(resolved.blob)
 
-            if (!isActive) {
-              texture.dispose()
-              return
-            }
-
-            activeTexture = texture
-            setEnvironmentMap(texture)
-            setEnvironmentSrc(null)
-
-            if (resolved.kind === "fetched") {
-              void persistHdrAsset(hdrSrc, resolved.blob).catch(() => {
-                // Ignore cache persistence failures; the parsed texture is already in use.
-              })
-            }
-
+          if (!isActive) {
+            URL.revokeObjectURL(objectUrl)
+            objectUrl = null
             return
-          } catch {
-            void invalidateHdrAsset(hdrSrc).catch(() => {
-              // Ignore cache invalidation failures; the scene will fall back to the direct URL.
-            })
           }
+
+          setEnvironmentSrc(objectUrl)
+
+          if (resolved.kind === "fetched") {
+            void persistHdrAsset(hdrSrc, resolved.blob).catch(() => {})
+          }
+
+          return
         }
       } catch {
         // Fall through to the direct HDR URL fallback below.
       }
 
-      setEnvironmentMap(null)
       setEnvironmentSrc(hdrSrc)
     }
 
@@ -146,13 +111,9 @@ function CachedEnvironmentMap({ hdrSrc }: { hdrSrc: string }) {
 
     return () => {
       isActive = false
-      activeTexture?.dispose()
+      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [hdrSrc])
-
-  if (environmentMap) {
-    return <Environment map={environmentMap} />
-  }
 
   if (!environmentSrc) return null
 
