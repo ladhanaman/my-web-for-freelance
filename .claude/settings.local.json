@@ -61,7 +61,14 @@
       "mcp__plugin_vercel-plugin_vercel__web_fetch_vercel_url",
       "Bash(NODE_PATH=/Users/naman/.npm/_npx/420ff84f11983ee5/node_modules node *)",
       "Bash(grep -o \"useMeshOpt[^,\\)]*\\\\|MeshoptDecoder[^,\\)]*\\\\|function useGLTF[^{]*\" /Users/naman/Desktop/Projects/my-web/node_modules/@react-three/drei/index.cjs.js)",
-      "Bash(NODE_PATH=/Users/naman/Desktop/Projects/my-web/node_modules node *)"
+      "Bash(NODE_PATH=/Users/naman/Desktop/Projects/my-web/node_modules node *)",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web status)",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web log --oneline -5)",
+      "mcp__plugin_vercel-plugin_vercel__get_deployment",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web show --stat a487365)",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web show --stat c80b453)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web diff --stat HEAD)"
     ]
   }
 }

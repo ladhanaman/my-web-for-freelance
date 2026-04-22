@@ -10,13 +10,11 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
-  useState,
 } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { useGLTF, Environment } from "@react-three/drei"
 import * as THREE from "three"
 import { setConsoleFunction } from "three"
-import { invalidateHdrAsset, persistHdrAsset, resolveHdrAsset } from "@/lib/hdr-cache"
 
 // r3f v9 constructs THREE.Clock internally; three.js r183 deprecated it.
 // The built warn() already prepends 'THREE.' before calling setConsoleFunction,
@@ -70,54 +68,8 @@ class SceneErrorBoundary extends Component<SceneErrorBoundaryProps, SceneErrorBo
   }
 }
 
-function CachedEnvironmentMap({ hdrSrc }: { hdrSrc: string }) {
-  const [environmentSrc, setEnvironmentSrc] = useState<string | null>(null)
-
-  useEffect(() => {
-    let isActive = true
-    let objectUrl: string | null = null
-
-    const loadEnvironment = async () => {
-      try {
-        const resolved = await resolveHdrAsset(hdrSrc)
-
-        if (!isActive) return
-
-        if (resolved.kind !== "url") {
-          objectUrl = URL.createObjectURL(resolved.blob)
-
-          if (!isActive) {
-            URL.revokeObjectURL(objectUrl)
-            objectUrl = null
-            return
-          }
-
-          setEnvironmentSrc(objectUrl)
-
-          if (resolved.kind === "fetched") {
-            void persistHdrAsset(hdrSrc, resolved.blob).catch(() => {})
-          }
-
-          return
-        }
-      } catch {
-        // Fall through to the direct HDR URL fallback below.
-      }
-
-      setEnvironmentSrc(hdrSrc)
-    }
-
-    void loadEnvironment()
-
-    return () => {
-      isActive = false
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
-    }
-  }, [hdrSrc])
-
-  if (!environmentSrc) return null
-
-  return <Environment files={environmentSrc} />
+function EnvironmentMap({ hdrSrc }: { hdrSrc: string }) {
+  return <Environment files={hdrSrc} />
 }
 
 // Cubic ease-in-out — smooth S-curve, same curve drives all three transforms
@@ -370,7 +322,7 @@ export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
             />
             <GunModel progress={scrollProgress} />
             <SceneErrorBoundary>
-              <CachedEnvironmentMap hdrSrc={hdrSrc} />
+              <EnvironmentMap hdrSrc={hdrSrc} />
             </SceneErrorBoundary>
           </Suspense>
         </Canvas>

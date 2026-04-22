@@ -11,7 +11,7 @@ const securityHeaders = [
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https://images.unsplash.com",
       "font-src 'self' data:",
-      "connect-src 'self' https://vitals.vercel-insights.com https://va.vercel-scripts.com",
+      "connect-src 'self' blob: https://vitals.vercel-insights.com https://va.vercel-scripts.com",
       "media-src 'self'",
       "worker-src blob:",
       "frame-src 'none'",
