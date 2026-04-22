@@ -57,7 +57,11 @@
       "Bash(python3 *)",
       "Bash(open *)",
       "Bash(grep -E '\\\\.\\(tsx|ts\\)$')",
-      "Bash(git -C /Users/naman/Desktop/Projects/my-web ls-files public/env/)"
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web ls-files public/env/)",
+      "mcp__plugin_vercel-plugin_vercel__web_fetch_vercel_url",
+      "Bash(NODE_PATH=/Users/naman/.npm/_npx/420ff84f11983ee5/node_modules node *)",
+      "Bash(grep -o \"useMeshOpt[^,\\)]*\\\\|MeshoptDecoder[^,\\)]*\\\\|function useGLTF[^{]*\" /Users/naman/Desktop/Projects/my-web/node_modules/@react-three/drei/index.cjs.js)",
+      "Bash(NODE_PATH=/Users/naman/Desktop/Projects/my-web/node_modules node *)"
     ]
   }
 }
