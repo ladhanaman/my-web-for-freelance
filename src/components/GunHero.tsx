@@ -40,8 +40,6 @@ const SCALE_END = 0.70                      // 30 % size reduction
 const X_SHIFT = 0.12                      // rightward shift as fraction of viewport width
 const SPRING = 12                        // exponential spring stiffness (higher = snappier)
 const SNAP_THRESH = 0.005                     // snap to exact target near t=0 and t=1
-const GUN_MODEL_PATH = "/flintlock_pistol.glb"
-
 type SceneErrorBoundaryProps = {
   children: ReactNode
 }
@@ -85,8 +83,8 @@ function InvalidateBridge({ invalidateRef }: { invalidateRef: React.MutableRefOb
 }
 
 // ─── 3-D gun ─────────────────────────────────────────────────────────────────
-function GunModel({ progress }: { progress: { current: number } }) {
-  const { scene } = useGLTF(GUN_MODEL_PATH)
+function GunModel({ progress, glbSrc }: { progress: { current: number }; glbSrc: string }) {
+  const { scene } = useGLTF(glbSrc)
   const cloned = useMemo(() => scene.clone(true), [scene])
   const group = useRef<THREE.Group>(null)
   const { viewport } = useThree()
@@ -163,8 +161,6 @@ function GunModel({ progress }: { progress: { current: number } }) {
   )
 }
 
-useGLTF.preload(GUN_MODEL_PATH)
-
 // ─── Tagline words with their scroll-in windows ──────────────────────────────
 // Each word fades + slides up independently, staggered across scroll progress.
 const WORDS = [
@@ -174,7 +170,7 @@ const WORDS = [
 ] as const
 
 // ─── Full hero section ────────────────────────────────────────────────────────
-export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
+export default function GunHero({ hdrSrc, glbSrc }: { hdrSrc: string; glbSrc: string }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const hintRef = useRef<HTMLDivElement>(null)
   const wordRefs = [
@@ -320,7 +316,7 @@ export default function GunHero({ hdrSrc }: { hdrSrc: string }) {
               intensity={5}
               color="#d4895e"
             />
-            <GunModel progress={scrollProgress} />
+            <GunModel progress={scrollProgress} glbSrc={glbSrc} />
             <SceneErrorBoundary>
               <EnvironmentMap hdrSrc={hdrSrc} />
             </SceneErrorBoundary>

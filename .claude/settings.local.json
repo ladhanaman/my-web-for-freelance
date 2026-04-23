@@ -68,7 +68,11 @@
       "Bash(git -C /Users/naman/Desktop/Projects/my-web show --stat a487365)",
       "Bash(git -C /Users/naman/Desktop/Projects/my-web show --stat c80b453)",
       "Bash(node_modules/.bin/tsc --noEmit)",
-      "Bash(git -C /Users/naman/Desktop/Projects/my-web diff --stat HEAD)"
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web diff --stat HEAD)",
+      "Bash(curl -sf -o /dev/null -w \"%{http_code}\" https://in-kairos.vercel.app/)",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web show --stat f817762)",
+      "Bash(git -C /Users/naman/Desktop/Projects/my-web show f817762 -- next.config.ts)",
+      "Bash(curl -sf https://in-kairos.vercel.app/)"
     ]
   }
 }

@@ -9,12 +9,17 @@ import LandingPageWrapper from "@/components/LandingPageWrapper";
 import NavBar from "@/components/NavBar";
 import { SECTION_IDS } from "@/lib/collections";
 import { getHdrAssetSrc } from "@/lib/hdr-asset";
+import { getGlbAssetSrc } from "@/lib/glb-asset";
 
 export default async function Home() {
-  const hdrSrc = await getHdrAssetSrc()
+  const [hdrSrc, glbSrc] = await Promise.all([getHdrAssetSrc(), getGlbAssetSrc()])
 
   return (
     <>
+      {/* ── Preload heavy 3-D assets during the overlay window so Canvas mounts instantly ── */}
+      <link rel="preload" as="fetch" href={glbSrc} />
+      <link rel="preload" as="fetch" href={hdrSrc} />
+
       {/* ── Black placeholder — server-rendered instantly, hides home until LandingPage mounts ── */}
       <div
         id="landing-placeholder"
@@ -49,7 +54,7 @@ export default async function Home() {
 
         {/* ── Screen 2: Gun ── */}
         <div id={SECTION_IDS.gun} style={{ height: "200vh" }}>
-          <GunHeroClient hdrSrc={hdrSrc} />
+          <GunHeroClient hdrSrc={hdrSrc} glbSrc={glbSrc} />
         </div>
 
         {/* ── Screen 3: Framescape photography ── */}

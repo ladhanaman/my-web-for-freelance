@@ -2,7 +2,7 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 import dynamic from 'next/dynamic'
-import { LANDING_DISMISSED_SESSION_KEY } from '@/lib/home-entry'
+import { LANDING_DISMISSED_SESSION_KEY, SITE_ENTERED_EVENT } from '@/lib/home-entry'
 import { PARALLAX_RETURN_SCROLL_KEY } from '@/lib/parallax/navigation'
 
 // dynamic + ssr:false must live in a Client Component — not a Server Component
@@ -83,6 +83,9 @@ export default function LandingPageWrapper() {
     if (!isResolved || shouldRenderOverlay || shouldHoldPlaceholder) return
 
     hidePlaceholder()
+    // Overlay was skipped (hash nav, repeat visit, etc.) — signal the rest of the
+    // page that the user has effectively "entered" so heavy assets can mount.
+    window.dispatchEvent(new CustomEvent(SITE_ENTERED_EVENT))
 
     if (hash.length > 1) {
       const targetId = decodeHashTargetId(hash)
@@ -102,6 +105,7 @@ export default function LandingPageWrapper() {
     } catch {
       // Ignore storage failures; the overlay will simply reappear on the next visit.
     }
+    window.dispatchEvent(new CustomEvent(SITE_ENTERED_EVENT))
   }
 
   if (!isResolved || !shouldRenderOverlay) return null
