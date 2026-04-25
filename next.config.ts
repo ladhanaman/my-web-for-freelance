@@ -80,6 +80,15 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/dotlottie-player.wasm",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: IMMUTABLE_CACHE_CONTROL,
+          },
+        ],
+      },
+      {
         source: "/flintlock_pistol.glb",
         headers: [
           {

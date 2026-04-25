@@ -1,6 +1,8 @@
 "use client";
 
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
+import { DotLottieReact, setWasmUrl } from '@lottiefiles/dotlottie-react';
+
+setWasmUrl('/dotlottie-player.wasm');
 
 export default function CatLottie() {
   return (
